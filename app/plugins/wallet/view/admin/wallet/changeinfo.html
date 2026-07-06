@@ -1,0 +1,91 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        {{if !empty($user_wallet) and !empty($user_info)}}
+            <!-- form start -->
+            <form class="am-form form-validation am-form-full-screen am-form-popup-fixed" action="{{:PluginsAdminUrl('wallet', 'wallet', 'change')}}" method="POST" request-type="ajax-reload" request-value="parent">
+                <div class="top-info">
+                    <!-- 用户信息 -->
+                    <div class="user-info am-padding-top-sm">
+                        <img src="{{$user_info.avatar}}" class="am-img-thumbnail am-circle" />
+                        <p class="am-text-truncate am-text-center am-margin-top-xs">{{$user_info.user_name_view}}</p>
+                    </div>
+                    <!-- 钱包基础信息 -->
+                    <ul class="am-list am-list-static wallet-info">
+                        <li class="am-cf">
+                            <div class="title am-fl am-margin-rigin-lg">有效余额</div>
+                            <div class="value am-fl am-margin-left-sm am-padding-left-sm am-text-primary">
+                                <em>{{$currency_symbol}}</em>
+                                <strong>{{$user_wallet.normal_money}}</strong>
+                            </div>
+                        </li>
+                        <li class="am-cf">
+                            <div class="title am-fl am-margin-rigin-lg">冻结金额</div>
+                            <div class="value am-fl am-margin-left-sm am-padding-left-sm am-text-warning">
+                                <em>{{$currency_symbol}}</em>
+                                <strong>{{$user_wallet.frozen_money}}</strong>
+                            </div>
+                        </li>
+                        <li class="am-cf">
+                            <div class="title am-fl am-margin-rigin-lg">赠送金额</div>
+                            <div class="value am-fl am-margin-left-sm am-padding-left-sm am-text-danger">
+                                <em>{{$currency_symbol}}</em>
+                                <strong>{{$user_wallet.give_money}}</strong>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <hr data-am-widget="divider" class="am-divider am-divider-default am-margin-top-0" />
+
+                <div class="am-form-group">
+                    <label class="am-block">余额类型<span class="am-form-group-label-tips-must">*</span></label>
+                    {{foreach $wallet_money_type_list as $v}}
+                        <label class="am-radio-inline">
+                            <input type="radio" name="money_type" value="{{$v.value}}" {{if isset($v['checked']) and $v['checked'] eq true}}checked="checked"{{/if}} data-am-ucheck /> {{$v.name}}
+                        </label>
+                    {{/foreach}}
+                </div>
+
+                <div class="am-form-group">
+                    <label class="am-block">操作类型<span class="am-form-group-label-tips-must">*</span></label>
+                    {{foreach $wallet_operate_type_list as $v}}
+                        <label class="am-radio-inline">
+                            <input type="radio" name="operate_type" value="{{$v.value}}" {{if isset($v['checked']) and $v['checked'] eq true}}checked="checked"{{/if}} data-am-ucheck /> {{$v.name}}
+                        </label>
+                    {{/foreach}}
+                </div>
+
+                <div class="am-form-group">
+                    <label class="am-block">操作余额<span class="am-form-group-label-tips-must">*</span></label>
+                    <input type="number" name="money" min="0.01" step="0.01" class="am-radius" placeholder="操作余额" data-validation-message="请输入操作余额" />
+                </div>
+
+                <div class="am-form-group">
+                    <label class="am-block">备注信息</label>
+                    <input type="text" name="note" class="am-radius" placeholder="备注信息" maxlength="200" data-validation-message="备注信息格式最多200个字符" />
+                </div>
+
+                <div class="am-form-popup-submit">
+                    <input type="hidden" name="id" value="{{$user_wallet.id}}" />
+                    <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                        <i class="am-icon-paint-brush"></i>
+                        <span>{{:MyLang('cancel_title')}}</span>
+                    </button>
+                    <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('submit_title')}}'}">
+                        <i class="am-icon-save"></i>
+                        <span>{{:MyLang('submit_title')}}</span>
+                    </button>
+                </div>
+            </form>
+            <!-- form end -->
+        {{else /}}
+            <div class="table-no"><i class="am-icon-warning"></i> 无钱包数据</div>
+        {{/if}}
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

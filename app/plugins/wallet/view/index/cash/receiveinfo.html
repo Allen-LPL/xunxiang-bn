@@ -1,0 +1,67 @@
+{{:ModuleInclude('public/header')}}
+
+{{if empty($package) or empty($data)}}
+    {{:ModuleInclude('public/not_data', ['msg'=>empty($error_msg) ? '配置信息有误' : $error_msg])}}
+{{else /}}
+    <div class="am-text-center am-margin-top-xl am-padding-top-xl">
+        <p class="am-color-grey cash-text-tips">提现金额领取</p>
+    </div>
+{{/if}}
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}
+
+<script type="text/javascript">
+    {{if !empty($package)}}
+        // 配置初始化
+        wx.config({
+            debug: false,
+            appId: '{{$package.appId}}',
+            timestamp: {{$package.timestamp}},
+            nonceStr: '{{$package.nonceStr}}',
+            signature: '{{$package.signature}}',
+            jsApiList: [
+                'updateAppMessageShareData',
+                'updateTimelineShareData'
+            ]
+        });
+        wx.ready(function() 
+        {
+            wx.checkJsApi({
+                jsApiList: ['requestMerchantTransfer'],
+                success: function (res)
+                {
+                    if(res.checkResult['requestMerchantTransfer'])
+                    {
+                        WeixinJSBridge.invoke('requestMerchantTransfer',
+                            {
+                                mchId: '{{$data.mchid}}',
+                                appId: '{{$data.appid}}',
+                                package: '{{$data.package}}',
+                            },
+                            function (res)
+                            {
+                                if(res.err_msg == 'requestMerchantTransfer:ok')
+                                {
+                                    $.ajax({
+                                        url: RequestUrlHandle("{{:PluginsHomeUrl('wallet', 'cash', 'payrefresh')}}"),
+                                        type: 'POST',
+                                        dataType: "json",
+                                        timeout: 60000,
+                                        data: {id: {{$data.cash_id}}}
+                                    });
+                                } else {
+                                    Prompt(res.err_msg);
+                                }
+                                setTimeout(function () {
+                                    window.history.go(-1);
+                                }, 1500);
+                        });
+                    } else {
+                        Prompt('你的微信版本过低，请更新至最新版本！');
+                    }
+                }
+            });
+        });
+    {{/if}}
+</script>

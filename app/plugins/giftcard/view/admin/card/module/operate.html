@@ -1,0 +1,31 @@
+<!-- 操作栏 -->
+<button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-url="{{:PluginsAdminUrl('giftcard', 'card', 'detail', ['id'=>$module_data['id']])}}" data-title="{{:MyLang('detail_title')}}">
+    <i class="am-icon-eye"></i>
+    <span>{{:MyLang('detail_title')}}</span>
+</button>
+<button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-url="{{:PluginsAdminUrl('giftcard', 'card', 'saveinfo', ['id'=>$module_data['id']])}}" data-title="{{:MyLang('edit_title')}}">
+    <i class="am-icon-edit"></i>
+    <span>{{:MyLang('edit_title')}}</span>
+</button>
+{{if isset($module_data['is_enable']) and $module_data['is_enable'] eq 1}}
+    <button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-generate" data-value="{{$module_data.id}}" data-am-modal="{target: '#modal-generate', width: 300, height: 200}">
+        <i class="am-icon-gg"></i>
+        <span>{{:MyLang('generate_title')}}</span>
+    </button>
+{{/if}}
+{{if !empty($module_data['card_count'])}}
+    {{if !empty($module_data['batch_data']) and is_array($module_data['batch_data'])}}
+        <button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-url="{{:PluginsAdminUrl('giftcard', 'card', 'downloadinfo', ['id'=>$module_data['id']])}}" data-title="{{:MyLang('download_title')}}">
+            <i class="am-icon-download"></i>
+            <span>{{:MyLang('download_title')}}</span>
+        </button>
+    {{/if}}
+    <button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-offcanvas="right" data-url="{{:PluginsAdminUrl('giftcard', 'cardsecret', 'index', ['cid'=>$module_data['id']])}}" data-title="{{:MyLang('list_title')}}">
+        <i class="am-icon-list-ul"></i>
+        <span>{{:MyLang('list_title')}}</span>
+    </button>
+{{/if}}
+<button type="button" class="am-btn am-btn-danger am-btn-xs am-radius am-btn-block submit-delete" data-url="{{:PluginsAdminUrl('giftcard', 'card', 'delete')}}" data-id="{{$module_data.id}}" data-key="ids">
+    <i class="iconfont icon-delete"></i>
+    <span>{{:MyLang('delete_title')}}</span>
+</button>

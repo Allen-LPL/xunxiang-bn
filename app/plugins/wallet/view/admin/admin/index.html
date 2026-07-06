@@ -1,0 +1,358 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        <!-- nav -->
+        {{:ModuleInclude('public/plugins_admin_nav', [
+            'plugins'   => 'wallet',
+            'nav_data'  => $plugins_nav_menu_list,
+        ])}}
+
+        <div class="wallet-content">
+            <!-- 操作提示 -->
+            <div class="am-operate-stretch-tips">
+                <div class="title">
+                    <i class="iconfont icon-tips"></i>
+                    <strong title="{{:MyLang('operate_list_tips_msg')}}">{{:MyLang('operate_list_tips_button_text')}}</strong>
+                    <i class="iconfont icon-retract-diagonal contract" title="{{:MyLang('operate_list_tips_retract_text')}}"></i> 
+                </div>
+                <p>1. 用户注册默认添加用户钱包、或者用户访问钱包页面也会自动添加用户钱包</p>
+                <p>2. 提现申请，需要绑定手机或者邮箱，用于提现验证</p>
+                <p>3. 处理提现，需自行按照用户填写的提现信息打款、然后操作打款状态以及备注</p>
+            </div>
+
+            <!-- 统计面板/管理 -->
+            <div class="wallet-content-module am-nbfc am-margin-bottom-sm">
+                <ul data-am-widget="gallery" class="am-gallery am-avg-sm-2 am-avg-md-4 am-gallery-default" data-am-gallery="{ pureview: true }" >
+                    {{if !empty($statistical)}}
+                        {{foreach $statistical as $v}}
+                            <li class="module-wallet">
+                                <div class="module-items">
+                                    <p class="title">{{$v.title}}</p>
+                                    <p class="total animation-count-to" data-to="{{$v.count}}" data-speed="1500">{{$v.count}}</p>
+                                    <div class="small">
+                                        <span>昨日</span>
+                                        <span class="animation-count-to" data-to="{{$v.yesterday_count}}" data-speed="1500">{{$v.yesterday_count}}</span>
+                                    </div>
+                                    <div class="small">
+                                        <span>今日</span>
+                                        <span class="animation-count-to" data-to="{{$v.today_count}}" data-speed="1500">{{$v.today_count}}</span>
+                                    </div>
+                                    {{if isset($v['right_count']) and isset($v['right_title'])}}
+                                        <div class="top-right">
+                                            <span>{{$v.right_title}}</span>
+                                            <span class="animation-count-to" data-to="{{$v.right_count}}" data-speed="1500">{{$v.right_count}}</span>
+                                        </div>
+                                    {{/if}}
+                                    <a href="{{$v.url}}" class="am-badge am-badge-secondary am-radius view-to">管理 <i class="am-icon-angle-double-right"></i></a>
+                                </div>
+                            </li>
+                        {{/foreach}}
+                    {{/if}}
+                </ul>
+            </div>
+
+            <!-- 基础数据 -->
+            <div class="am-panel am-panel-default am-radius wallet-content-base">
+                <div class="am-panel-hd">
+                    <span class="am-panel-title">{{:MyLang('form_base_data_title')}}</span>
+                    {{if AdminIsPower('admin', 'saveinfo')}}
+                        <a class="am-margin-left-lg" href="{{:PluginsAdminUrl('wallet', 'admin', 'saveinfo')}}">
+                            <i class="am-icon-edit"></i>
+                            <span>{{:MyLang('edit_title')}}</span>
+                        </a>
+                    {{/if}}
+                </div>
+                <div class="am-panel-bd">
+                    <ul class="am-avg-sm-2 am-avg-md-4 am-avg-lg-4 am-gallery-default">
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>修改用户账户余额密码</label>
+                                <div>
+                                    {{if empty($data['wallet_edit_money_password'])}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启转账</label>
+                                <div>
+                                    {{if !isset($data['is_enable_transfer']) or $data['is_enable_transfer'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启充值</label>
+                                <div>
+                                    {{if !isset($data['is_enable_recharge']) or $data['is_enable_recharge'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>固定金额或比例充值赠送</label>
+                                <div>
+                                    {{if isset($data['recharge_give_type']) and isset($data['recharge_give_value']) and $data['recharge_give_value'] gt 0}}
+                                        {{if isset($recharge_give_type_list[$data['recharge_give_type']])}}
+                                            {{$recharge_give_type_list[$data['recharge_give_type']]['name']}}
+                                            {{if $data['recharge_give_type'] eq 0}}
+                                                （{{$data.recharge_give_value}}）
+                                            {{elseif $data['recharge_give_type'] eq 1 /}}
+                                                （{{$data.recharge_give_value}}%）
+                                            {{/if}}
+                                        {{/if}}
+                                    {{else /}}
+                                        不赠送
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>自定义充值赠送及预设</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if !empty($data['custom_recharge_give'])}}
+                                        {{:implode('<br />', $data['custom_recharge_give'])}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>充值可选支付方式</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if !empty($data['recharge_can_payment']) and is_array($data['recharge_can_payment'])}}
+                                        {{foreach $payment_list as $v}}
+                                            {{if in_array($v['payment'], $data['recharge_can_payment'])}}
+                                                <span class="am-margin-right-sm">{{$v.name}}</span>
+                                            {{/if}}
+                                        {{/foreach}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>充值规则说明</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if !empty($data['recharge_desc'])}}
+                                        {{:implode('<br />', $data['recharge_desc'])}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启提现申请</label>
+                                <div>
+                                    {{if !isset($data['is_enable_cash']) or $data['is_enable_cash'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提现保留赠送金额</label>
+                                <div>
+                                    {{if !isset($data['is_cash_retain_give']) or $data['is_cash_retain_give'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提现申请时间限制</label>
+                                <div>
+                                    {{if empty($data['cash_time_limit'])}}
+                                        30
+                                    {{else /}}
+                                        {{$data.cash_time_limit}}
+                                    {{/if}}
+                                    分钟
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提现最低金额</label>
+                                <div>
+                                    {{if empty($data['cash_minimum_amount']) or $data['cash_minimum_amount'] elt 0}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        最低 {{$data.cash_minimum_amount}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提现手续费税率</label>
+                                <div>
+                                    {{if empty($data['cash_commission_rate']) or $data['cash_commission_rate'] elt 0}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{$data.cash_commission_rate}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>支持提现方式</label>
+                                <div>
+                                    {{if empty($data['cash_type'])}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{foreach $cash_type_list as $k=>$v}}
+                                            {{if in_array($v['value'], $data['cash_type'])}}
+                                                {{if $k gt 0}}，{{/if}}{{$v.name}}
+                                            {{/if}}
+                                        {{/foreach}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启付款码</label>
+                                <div>
+                                    {{if !isset($data['is_enable_payment_code']) or $data['is_enable_payment_code'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>付款码有效时间</label>
+                                <div>
+                                    {{if !empty($data['payment_code_valid_time'])}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.payment_code_valid_time}}秒 ]
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>余额变更通知</label>
+                                <div>
+                                    {{if !isset($data['is_money_change_notice']) or $data['is_money_change_notice'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>短信签名</label>
+                                <div>
+                                    {{if !empty($data['sms_sign'])}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.sms_sign}} ]
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>短信模板ID-余额变更</label>
+                                <div>
+                                    {{if !empty($data['sms_money_change_template'])}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.sms_money_change_template}} ]
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>邮件通知模板-余额变更</label>
+                                <div>
+                                    {{if !empty($data['email_money_change_template'])}}
+                                        {{:MyLang('already_setup_tips')}}[ <a href="javascript:;" data-am-modal="{target: '#popup-money-change'}">{{:MyLang('view_title')}}</a> ]
+                                        <div class="am-popup popup-not-title" id="popup-money-change">
+                                            <div class="am-popup-inner">
+                                            <span data-am-modal-close="" class="am-close am-close-alt">&times;</span>
+                                            <div class="am-popup-bd">
+                                                {{$data.email_money_change_template|raw}}
+                                            </div>
+                                        </div>
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>用户中心公告</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if !empty($data['user_center_notice'])}}
+                                        {{:implode('<br />', $data['user_center_notice'])}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>用户中心头部背景图片（手机端）</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['default_center_head_bg_images_app'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.default_center_head_bg_images_app}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.default_center_head_bg_images_app}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

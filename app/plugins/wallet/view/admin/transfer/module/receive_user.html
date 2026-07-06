@@ -1,0 +1,5 @@
+{{if !empty($module_data['receive_user'])}}
+    {{:ModuleInclude('lib/module/user', [
+        'user' => $module_data['receive_user'],
+    ])}}
+{{/if}}

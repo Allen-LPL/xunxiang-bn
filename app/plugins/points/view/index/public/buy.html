@@ -1,0 +1,41 @@
+{{if !empty($buy_user_points)}}
+    <div id="buy-items-plugins-points" class="am-panel am-margin-top-main plugins-points-buy-container am-border-0">
+        <div class="am-panel-bd am-text-right am-padding-0">
+            {{if !empty($buy_user_points['discount_price']) and $buy_user_points['discount_price'] gt 0}}
+                <div class="am-nbfc">
+                    {{if !isset($buy_user_points['is_pure_exchange_modal']) or $buy_user_points['is_pure_exchange_modal'] neq 1 or $buy_user_points['discount_type'] neq 1}}
+                        <label class="am-checkbox-inline am-margin-right-0">
+                            <input type="checkbox" value="1" data-am-ucheck {{if isset($buy_user_points['is_checked']) and $buy_user_points['is_checked'] eq 1}} checked{{/if}} />
+                        </label>
+                    {{/if}}
+                    {{if $buy_user_points.discount_type eq 1}}
+                        {{if !empty($buy_user_points['use_msg_tips'])}}
+                            <span>{{$buy_user_points.use_msg_tips}}</span>
+                        {{/if}}
+                    {{else /}}
+                        <span>使用</span>
+                        <div class="am-input-group am-input-group-sm actual-use-integral-container">
+                            <input type="number" class="am-form-field am-radius am-text-center" value="{{$buy_user_points.actual_use_integral}}" min="0" max="{{$buy_user_points.use_integral}}" placeholder="抵扣" data-is-clearout="0" />
+                            <span class="am-input-group-btn">
+                                <button class="am-btn am-btn-default am-radius" type="button">{{:MyLang('confirm_title')}}</button>
+                            </span>
+                        </div>
+                        <span>个积分</span>
+                    {{/if}}
+                    {{if !isset($buy_user_points['is_pure_exchange_modal']) or $buy_user_points['is_pure_exchange_modal'] neq 1 or $buy_user_points['discount_type'] neq 1}}
+                        <span class="am-fr am-margin-left price">
+                            <span>-</span><em>{{$currency_symbol}}</em><strong>{{$buy_user_points.discount_price}}</strong>
+                        </span>
+                    {{/if}}
+                </div>
+                {{if !empty($buy_user_points['usable_msg_tips'])}}
+                    <p class="am-margin-top-xs am-color-grey-dark">{{$buy_user_points.usable_msg_tips}}</p>
+                {{/if}}
+            {{else /}}
+                {{if !empty($buy_user_points['not_msg_tips'])}}
+                    <p class="am-text-base">{{$buy_user_points.not_msg_tips}}</p>
+                {{/if}}
+            {{/if}}
+        </div>
+    </div>
+{{/if}}

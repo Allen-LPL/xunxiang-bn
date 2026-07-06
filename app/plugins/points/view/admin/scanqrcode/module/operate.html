@@ -1,0 +1,14 @@
+<!-- 操作栏 -->
+{{if empty($module_data['images'])}}
+    {{if AdminIsPower('scanqrcode', 'generate')}}
+        <button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-ajax" data-url="{{:PluginsAdminUrl('points', 'scanqrcode', 'generate')}}" data-id="{{$module_data.id}}" data-key="id" data-is-confirm="0" data-is-loading="1" data-view="reload">
+            <i class="am-icon-gg"></i>
+            <span>{{:MyLang('generate_title')}}</span>
+        </button>
+    {{/if}}
+{{else /}}
+    <a href="{{:MyUrl('admin/qrcode/download', ['url'=>urlencode(base64_encode($module_data.images)), 'filename'=>$module_data['qrcode']])}}" target="_blank" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block">
+        <i class="am-icon-download"></i>
+        <span>{{:MyLang('download_title')}}</span>
+    </a>
+{{/if}}

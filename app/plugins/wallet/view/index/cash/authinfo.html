@@ -1,0 +1,109 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- header top nav -->
+{{:ModuleInclude('public/header_top_nav')}}
+
+<!-- search -->
+{{:ModuleInclude('public/nav_search')}}
+
+<!-- header nav -->
+{{:ModuleInclude('public/header_nav')}}
+
+<!-- goods category -->
+{{:ModuleInclude('public/goods_category')}}
+
+<!-- content -->
+<div class="am-container user-main">
+    <!-- user menu start -->
+    {{:ModuleInclude('public/user_menu')}}
+    <!-- user menu end -->
+
+    <!-- content start -->
+    <div class="user-content">
+        <div class="user-content-body">
+            <!-- user menu start -->
+            {{:ModuleInclude('../../../plugins/wallet/view/index/public/nav')}}
+            <!-- user menu end -->
+
+            <!-- 是否限制了最低提现金额 -->
+            {{if !isset($plugins_config['cash_minimum_amount']) or $plugins_config['cash_minimum_amount'] elt 0 or ($user_wallet['normal_money'] egt $plugins_config['cash_minimum_amount'])}}
+                <!-- tips start -->
+                <div class="am-alert am-alert-success wallet-cash-auth-tips">
+                    <p class="title">操作提示</p>
+                    <ul>
+                        <li>1. 请选择 "绑定邮箱" 或 "绑定手机" 方式其一作为安全校验码的获取方式并正确输入。</li>
+                        <li>2. 如果您未绑定手机或者邮箱已失效，可以 <a href="{{:MyUrl('index/safety/index')}}">绑定手机</a> 后通过接收手机短信完成验证。</li>
+                        <li>3. 如果您未绑定邮箱或者已失效，可以 <a href="{{:MyUrl('index/safety/index')}}">绑定邮箱</a> 后通过接收邮件完成验证。</li>
+                        <li>4. 请正确输入下方图形验证码，如看不清可点击图片进行更换，输入完成后进行下一步操作。</li>
+                        <li>5. 收到安全验证码后，请在{{:Myc('common_verify_expire_time', 600, true)/60}}分钟内完成验证。</li>
+                        <li>6. 安全验证成功后，请在{{if empty($plugins_config['cash_time_limit'])}}30{{else /}}{{$plugins_config.cash_time_limit}}{{/if}}分钟内完成提现申请。</li>
+                    </ul>
+                </div>
+                <!-- tips end -->
+
+                {{if !empty($check_account_list)}}
+                    <!-- form start -->
+                    <form class="am-form form-validation am-form-popup-sticky" method="post" action="{{:PluginsHomeUrl('wallet', 'cash', 'verifycheck')}}" request-type="ajax-url" request-value="{{:PluginsHomeUrl('wallet', 'cash', 'createinfo')}}">
+                        <div class="am-form-group">
+                            <label>选择身份认证方式<span class="am-form-group-label-tips-must">*</span></label>
+                            <select name="account_type" class="chosen-select" data-placeholder="{{:MyLang('please_select_tips')}}" data-validation-message="请选择身份认证方式" required>
+                                {{foreach $check_account_list as $v}}
+                                    <option value="{{$v.field}}">{{$v.msg}}</option>
+                                {{/foreach}}
+                            </select>
+                        </div>
+
+                        <div class="am-form-group">
+                            <label>请输入安全验证码<span class="am-form-group-label-tips-must">*</span></label>
+                            <div class="am-input-group am-input-group-sm">
+                                <input type="number" name="verify" class="am-form-field am-radius" placeholder="{{:MyLang('form_verify_placeholder')}}" minlength="4" maxlength="4" data-validation-message="{{:MyLang('form_verify_message')}}" required />
+                                <span class="am-input-group-btn">
+                                    <button class="am-btn am-btn-default am-radius btn-loading-example verify-submit" type="button" data-am-loading="{spinner:'circle-o-notch', loadingText:'{{:MyLang('send_tips')}}'}" data-url="{{:PluginsHomeUrl('wallet', 'cash', 'verifysend')}}" data-verify="{{:MyC('common_img_verify_state')}}" data-text="获取安全验证码" data-send-text="{{:MyLang('form_verify_send_text')}}" data-time="{{:MyC('common_verify_interval_time', 30, true)}}">获取安全验证码</button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="am-form-popup-submit">
+                            <button type="submit" class="am-btn am-btn-primary am-radius am-btn-sm btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText: '确认，进入下一步'}">
+                                <i class="am-icon-arrow-right"></i>
+                                <span>确认，进入下一步</span>
+                            </button>
+                        </div>
+                    </form>
+                    <!-- form end -->
+
+                    <!-- verify win start -->
+                    <div class="am-modal am-modal-no-btn" tabindex="-1" id="verify-win">
+                        <div class="am-modal-dialog am-radius">
+                            <div class="am-modal-hd">
+                                <a href="javascript:;" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+                            </div>
+                            <div class="am-modal-bd">
+                                <div class="base">
+                                    <input type="text" placeholder="{{:MyLang('form_images_verify_title')}}" maxlength="4" id="verify-img-value" data-validation-message="{{:MyLang('form_images_verify_message')}}" class="am-form-field am-radius" autocomplete="off" data-is-clearout="0" />
+                                    <div class="am-fl">
+                                        <img src="{{:PluginsHomeUrl('wallet', 'cash', 'verifyentry')}}" class="am-radius am-cursor-pointer" id="verify-img" onClick="this.src=this.src+(({{$url_model}} == 0) ? '&' : '?')+Math.random();" />
+                                        <a href="javascript:;" class="verify-tips" onClick="document.getElementById('verify-img').src='{{:PluginsHomeUrl('wallet', 'cash', 'verifyentry')}}{{if $url_model eq 0}}&{{else /}}?{{/if}}'+Math.random();">{{:MyLang('form_images_verify_button_text')}}</a>
+                                    </div>
+                                </div>
+                                <button type="button" class="am-btn am-btn-secondary am-radius am-btn-sm block btn-loading-example verify-submit-win" data-am-loading="{spinner:'circle-o-notch', loadingText:'{{:MyLang('confirm_title')}}'}" data-win="1">
+                                    <i class="am-icon-check"></i>
+                                    <span>{{:MyLang('confirm_title')}}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- verify win end -->
+                {{/if}}
+            {{else /}}
+                <div class="am-alert am-alert-warning">
+                    <p>提现最低金额 {{$currency_symbol}}{{$plugins_config.cash_minimum_amount}} 起</p>
+                </div>
+            {{/if}}
+        </div>
+    </div>
+    <!-- content end -->
+</div>
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

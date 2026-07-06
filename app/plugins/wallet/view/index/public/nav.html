@@ -1,0 +1,321 @@
+<!-- 导航 -->
+<ul class="am-nav am-nav-pills user-center-admin-nav">
+    {{foreach $wallet_nav_list as $v}}
+        <li {{if !isset($plugins_controller_name) or (isset($plugins_controller_name) and $plugins_controller_name eq $v['control'])}}class="am-active"{{/if}}>
+            <a href="{{$v.url}}">{{$v.title}}</a>
+        </li>
+    {{/foreach}}
+    <div class="am-topbar-right">
+        {{if isset($plugins_config['is_enable_payment_code']) and $plugins_config['is_enable_payment_code'] eq 1}}
+            <button class="am-btn am-radius am-btn-danger-plain am-btn-sm am-topbar-btn payment-code-submit">
+                <i class="iconfont icon-qrcode"></i>
+                <span>付款码</span>
+            </button>
+        {{/if}}
+        {{if in_array($plugins_controller_name, ['wallet', 'transfer']) and (isset($plugins_config['is_enable_transfer']) and $plugins_config['is_enable_transfer'] eq 1)}}
+            <button class="am-btn am-radius am-btn-danger-plain am-btn-sm am-topbar-btn" data-am-modal="{target: '#plugins-wallet-transfer-modal', width: 400}">
+                <i class="iconfont icon-transfer"></i>
+                <span>转账</span>
+            </button>
+        {{/if}}
+        {{if in_array($plugins_controller_name, ['wallet', 'recharge']) and (isset($plugins_config['is_enable_recharge']) and $plugins_config['is_enable_recharge'] eq 1)}}
+            <button class="am-btn am-radius am-btn-danger-plain am-btn-sm am-topbar-btn recharge-submit" data-am-modal="{target: '#plugins-wallet-recharge-modal'}">
+                <i class="iconfont icon-wallet-recharge"></i>
+                <span>充值</span>
+            </button>
+        {{/if}}
+        {{if in_array($plugins_controller_name, ['wallet', 'cash']) and (isset($plugins_config['is_enable_cash']) and $plugins_config['is_enable_cash'] eq 1)}}
+            <a href="{{:PluginsHomeUrl('wallet', 'cash', 'authinfo')}}" class="am-btn am-radius am-btn-danger-plain am-btn-sm am-topbar-btn">
+                <i class="iconfont icon-cash"></i>
+                <span>提现</span>
+            </a>
+        {{/if}}
+    </div>
+</ul>
+
+<!-- 公告 -->
+{{if !empty($plugins_config['user_center_notice']) and $plugins_controller_name eq 'wallet'}}
+    <div class="am-alert am-alert-warning" data-am-alert>
+        <button type="button" class="am-close">&times;</button>
+        <p>{{:implode('<br />', $plugins_config['user_center_notice'])}}</p>
+    </div>
+{{/if}}
+
+<!-- 账户信息 -->
+{{if empty($wallet_error)}}
+    <div class="account-info am-background-grey-f9 am-radius-lg am-padding am-flex am-flex-warp am-flex-items-center am-flex-justify-center am-margin-vertical-main am-gap-12">
+        <div class="normal am-flex-1 am-flex am-flex-items-center am-flex-nowarp am-flex-justify-center">
+            <img src="{{:StaticAttachmentUrl('wallet.png')}}" width="50">
+            <div class="am-padding-left-sm am-white-space">
+                <div>有效金额</div>
+                <div class="am-text-xl am-font-weight">
+                    <span>{{$currency_symbol}}{{$user_wallet.normal_money}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="frozen am-flex-1 am-flex am-flex-items-center am-flex-nowarp am-flex-justify-center">
+            <img src="{{:StaticAttachmentUrl('lock.png')}}" width="50">
+            <div class="am-padding-left-sm am-white-space">
+                <div>冻结金额</div>
+                <div class="am-text-xl am-font-weight">
+                    <span>{{$currency_symbol}}{{$user_wallet.frozen_money}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="give am-flex-1 am-flex am-flex-items-center am-flex-nowarp am-flex-justify-center">
+            <img src="{{:StaticAttachmentUrl('gifts.png')}}" width="50">
+            <div class="am-padding-left-sm am-white-space">
+                <div>赠送金额</div>
+                <div class="am-text-xl am-font-weight">
+                    <span>{{$currency_symbol}}{{$user_wallet.give_money}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+{{else /}}
+    <div class="am-alert am-alert-warning" data-am-alert>
+        {{$wallet_error}}
+    </div>
+{{/if}}
+
+<!-- 付款码 -->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="modal-payment-code" data-url="{{:PluginsHomeUrl('wallet', 'wallet', 'paymentcode')}}">
+    <div class="am-modal-dialog am-radius am-nbfc">
+        <div class="am-modal-hd">
+            <span>付款码</span>
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd am-margin-top-xs">
+            <div class="payment-code-content">
+                <svg id="payment-barcode"></svg>
+                <div id="payment-qrcode" class="am-text-center am-margin-top-sm"></div>
+                <p class="am-margin-top am-text-center am-text-warning">(<span class="scheduled-value">30</span>)秒后自动刷新付款码</p>
+            </div>
+            <p class="am-margin-top-xl am-padding-top-xl am-text-center am-text-warning error-tips am-hide"></p>
+        </div>
+    </div>
+</div>
+
+<!-- 转账窗口 -->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="plugins-wallet-transfer-modal">
+    <div class="am-modal-dialog am-radius am-nbfc">
+        <div class="am-modal-hd">
+            <span>转账</span>
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd am-padding-0">
+            <div class="am-padding-main am-text-left">
+                <form class="am-form form-validation-plugins-transfer-modal" action="{{:PluginsHomeUrl('wallet', 'transfer', 'save')}}" method="POST" request-type="ajax-url" request-value="{{:PluginsHomeUrl('wallet', 'transfer', 'index')}}">
+                    <div class="am-form-group transfer-input-container" data-ajax-url="{{:PluginsHomeUrl('wallet', 'transfer', 'userquery')}}">
+                        <div class="am-flex am-flex-row am-flex-items-center">
+                            <label>收款用户<span class="am-form-group-label-tips-must">*</span></label>
+                            <div class="am-flex-1 am-flex-width am-margin-left-sm">
+                                <div class="am-input-group am-input-group-sm">
+                                    <input type="text" class="am-form-field am-radius" placeholder="用户ID/名/会员码/手机/邮箱" data-validation-message="请输入收款用户" required />
+                                    <span class="am-input-group-btn">
+                                        <button class="am-btn am-btn-default am-radius" type="button">确认</button>
+                                    </span>
+                                </div>
+                                <div class="am-margin-top-xs user-query-tips am-pa">
+                                    <input type="text" name="receive_user_id" value="" class="drift" data-validation-message="请输入收款用户" required />
+                                    <p class="am-text-danger error-msg am-hide am-text-xs"></p>
+                                    <div class="receive-user-info am-hide">
+                                        <img src="" class="am-img-thumbnail am-circle am-margin-right-xs" width="25" height="25" />
+                                        <span>...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="am-form-group">
+                        <div class="am-flex am-flex-row am-flex-items-center">
+                            <label>转账金额<span class="am-form-group-label-tips-must">*</span></label>
+                            <div class="am-flex-1 am-flex-width am-margin-left-sm">
+                                <input type="number" autocomplete="off" name="money" step="0.01" min="0.01" max="{{$user_wallet.normal_money}}" placeholder="转账金额" data-validation-message="请输入转账金额、最大{{$currency_symbol}}{{$user_wallet.normal_money}}" class="am-radius" required />
+                                <div class="am-pa am-margin-top-xs am-text-xs">
+                                    <text class="am-color-grey">我的余额:</text>
+                                    <text class="price">{{$currency_symbol}}{{$user_wallet.normal_money}}</text>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="am-form-group">
+                        <div class="am-flex am-flex-row am-flex-items-center">
+                            <label>转账备注</label>
+                            <div class="am-flex-1 am-flex-width am-margin-left-sm">
+                                <input type="text" name="note" value="" placeholder="转账备注" maxlength="200" data-validation-message="转账备注格式最多200个字符" class="am-radius" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="am-margin-top-lg am-text-right">
+                        <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                            <i class="am-icon-paint-brush"></i>
+                            <span>{{:MyLang('cancel_title')}}</span>
+                        </button>
+                        <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'立即转账'}">
+                            <i class="am-icon-check"></i>
+                            <span>立即转账</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 充值窗口 -->
+<div class="am-popup am-radius" id="plugins-wallet-recharge-modal">
+    <div class="am-popup-inner">
+        <div class="am-popup-hd">
+            <h4 class="am-popup-title">充值金额</h4>
+            <span data-am-modal-close class="am-close">&times;</span>
+        </div>
+        <div class="am-popup-bd am-padding-0">
+            <div class="am-padding-main am-text-left">
+                <form class="am-form form-validation-plugins-recharge-modal am-form-popup-fixed" action="{{:PluginsHomeUrl('wallet', 'recharge', 'create')}}" method="POST" request-type="ajax-fun" request-value="PluginsWalletRechargeBack">
+                    {{if !empty($recharge_config_data) and !empty($recharge_config_data.preset_data)}}
+                        <div class="am-margin-bottom-main">
+                            <i class="iconfont icon-chongzhi-czje"></i>
+                            <text>请选择充值金额</text>
+                        </div>
+                        <div class="am-flex am-flex-warp am-flex-items-center recharge-price-item am-margin-bottom-sm">
+                            {{foreach $recharge_config_data.preset_data as $k=>$v}}
+                                <div class="recharge-price-list" data-original-price="{{$v.value}}">
+                                    <div class="recharge-price-content am-pr am-radius-lg am-cursor-pointer">
+                                        {{if !empty($v.tips)}}
+                                            <div class="tips am-color-white am-left-0 am-inline-block am-pa am-text-xs">{{$v.tips}}</div>
+                                        {{/if}}
+                                        <div class="single-text am-text-center recharge-price-num">
+                                            <text class="am-text-lg unit">{{$currency_symbol}}</text>
+                                            <text class="am-text-xl recharge-price-value">{{$v.value}}</text>
+                                        </div>
+                                    </div>
+                                </div>
+                            {{/foreach}}
+                        </div>
+                    {{/if}}
+                    <div class="am-input-group am-input-group-sm am-width am-margin-bottom-main">
+                        <div class="recharge-price-input am-padding-main am-flex am-flex-items-center am-radius-lg">
+                            <text class="am-margin-right-main">充值金额</text>
+                            <input type="number" autocomplete="off" name="money" min="0.01" step="0.01" class="am-form-fiel am-flex-1 am-flex-width" placeholder="请输入充值金额" data-validation-message="请输入充值金额" required />
+                        </div>
+                    </div>
+                    <div class="pay-method business-list">
+                        <div class="am-margin-bottom-sm">
+                            <i class="iconfont icon-chongzhi-zffs"></i>
+                            <text>支付方式</text>
+                        </div>
+                        {{if !empty($buy_payment_list)}}
+                            <ul class="am-avg-sm-2 am-avg-md-4 payment-list" data-type="payment">
+                                {{foreach $buy_payment_list as $payment}}
+                                    <li class="am-padding-sm {{if !empty($default_payment_id) and $default_payment_id eq $payment['id']}} selected{{/if}}" data-value="{{$payment.id}}">
+                                        <div class="business-item am-nbfc am-padding-sm am-radius">
+                                            {{if !empty($payment.logo)}}
+                                                <img src="{{$payment.logo}}" class="am-radius" />
+                                            {{/if}}
+                                            <span>{{$payment.name}}</span>
+                                            <i class="iconfont icon-subscript"></i>
+                                        </div>
+                                    </li>
+                                {{/foreach}}
+                            </ul>
+                        {{else /}}
+                            <div class="table-no"><i class="am-icon-warning"></i> 没有支付方式</div>
+                        {{/if}}
+                        <input type="number" name="payment_id" min="1" data-validation-message="请选择支付方式" value="0" class="drift" required />
+                    </div>
+                    {{if !empty($recharge_config_data) and !empty($recharge_config_data.recharge_desc)}}
+                        <div class="am-alert" data-am-alert>
+                            <button type="button" class="am-close">&times;</button>
+                            {{foreach $recharge_config_data.recharge_desc as $k=>$v}}
+                                <p>{{$v}}</p>
+                            {{/foreach}}
+                        </div>
+                    {{/if}}
+                    <div class="am-form-popup-submit">
+                        <div class="am-text-right">
+                            <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                                <i class="am-icon-paint-brush"></i>
+                                <span>{{:MyLang('cancel_title')}}</span>
+                            </button>
+                            <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'立即充值'}">
+                                <i class="am-icon-check"></i>
+                                <span>立即充值</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 支付方式 -->
+<div class="am-popup am-radius" id="plugins-wallet-recharge-pay-popup">
+    <div class="am-popup-inner">
+        <div class="am-popup-hd">
+            <h4 class="am-popup-title">支付确认</h4>
+            <span data-am-modal-close class="am-close">&times;</span>
+        </div>
+        <div class="am-popup-bd">
+            <form class="am-form form-validation-plugins-recharge-pay-popup am-form-popup-fixed" action="{{:PluginsHomeUrl('wallet', 'recharge', 'pay')}}" method="POST" request-type="form">
+                <div class="base am-radius">
+                    <p>充值单号：<span class="recharge-no">...</span></p>
+                    <p>充值金额：<strong class="price">...</strong></p>
+                </div>
+                <div class="business-list business-list-nbfc">
+                    <label>支付选择</label>
+                    {{if !empty($buy_payment_list)}}
+                        <ul class="am-avg-sm-2 am-avg-md-3 payment-list" data-type="payment">
+                            {{foreach $buy_payment_list as $payment}}
+                                <li class="am-padding-sm payment-document-{{$payment.id}} {{if !empty($default_payment_id) and $default_payment_id eq $payment['id']}} selected{{/if}}" data-value="{{$payment.id}}">
+                                    <div class="business-item am-nbfc am-padding-sm am-radius">
+                                        {{if !empty($payment.logo)}}
+                                            <img src="{{$payment.logo}}" class="am-radius" />
+                                        {{/if}}
+                                        <span>{{$payment.name}}</span>
+                                        <i class="iconfont icon-subscript"></i>
+                                    </div>
+                                </li>
+                            {{/foreach}}
+                        </ul>
+                    {{/if}}
+                    {{if empty($buy_payment_list)}}
+                        <div class="table-no"><i class="am-icon-warning"></i> 没有支付方式</div>
+                    {{/if}}
+                    <input type="number" name="payment_id" min="1" data-validation-message="请选择支付方式" value="0" class="drift" required />
+                </div>
+
+                <div class="am-form-popup-submit">
+                    <input type="hidden" name="recharge_id" value="" />
+                    <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                        <i class="am-icon-paint-brush"></i>
+                        <span>{{:MyLang('cancel_title')}}</span>
+                    </button>
+                    <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('confirm_payment_title')}}'}">
+                        <i class="am-icon-check"></i>
+                        <span>{{:MyLang('confirm_payment_title')}}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+/**
+ * 充值回调
+ */
+function PluginsWalletRechargeBack(e)
+{
+    $.AMUI.progress.done();
+    var $popup = $('form.form-validation-plugins-recharge-modal');
+    $popup.find('button[type="submit"]').button('reset');
+    if(e.code == 0)
+    {
+        var url = '{{:PluginsHomeUrl("wallet", "recharge", "pay")}}';
+        window.location.href = UrlFieldReplace('payment_id', $popup.find('input[name="payment_id"]').val(), UrlFieldReplace('recharge_id', e.data.recharge_id, url));
+    } else {
+        Prompt(e.msg);
+    }
+}
+</script>

@@ -1,0 +1,6 @@
+{{if !empty($plugins_data)}}
+    <button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-url="{{:PluginsHomeUrl('points', 'goods', 'index', ['gid'=>$plugins_data['id']])}}" data-title="积分兑换">
+        <i class="am-icon-lastfm"></i>
+        <span>积分</span>
+    </button>
+{{/if}}

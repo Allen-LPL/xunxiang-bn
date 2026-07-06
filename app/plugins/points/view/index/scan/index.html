@@ -1,0 +1,61 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- header top nav -->
+{{:ModuleInclude('public/header_top_nav')}}
+
+<!-- search -->
+{{:ModuleInclude('public/nav_search')}}
+
+<!-- header nav -->
+{{:ModuleInclude('public/header_nav')}}
+
+<!-- goods category -->
+{{:ModuleInclude('public/goods_category')}}
+
+<!-- content start -->
+<div class="am-container">
+    <div class="plugins-points-scan am-text-center">
+        {{if empty($data) or !isset($data['status']) or $data['status'] eq -10000}}
+            {{if !empty($default_images_data['scan_top_banner'])}}
+                <img src="{{$default_images_data.scan_top_banner}}" />
+            {{/if}}
+            {{if !empty($default_images_data['scan_bottom_images'])}}
+                <img src="{{$default_images_data.scan_bottom_images}}" />
+            {{/if}}
+        {{else /}}
+            {{switch $data.status}}
+                {{case 0}}
+                    <div class="am-padding-bottom-xl">
+                        {{if !empty($default_images_data['scan_success_images'])}}
+                            <img src="{{$default_images_data.scan_success_images}}" />
+                        {{/if}}
+                        <p class="am-text-lg am-margin-top-lg">
+                            <strong>{{$data.msg}}</strong>
+                        </p>
+                    </div>
+                {{/case}}
+                {{case -100}}
+                    <div class="am-padding-bottom-xl">
+                        {{if !empty($default_images_data['scan_fail_images'])}}
+                            <img src="{{$default_images_data.scan_fail_images}}" />
+                        {{/if}}
+                        <p class="am-text-lg am-margin-top-lg">
+                            <strong>{{$data.msg}}</strong>
+                        </p>
+                    </div>
+                {{/case}}
+                {{default /}}
+                    {{:ModuleInclude('public/not_data', ['msg'=>$data['msg']])}}
+            {{/switch}}
+        {{/if}}
+        {{if empty($user)}}
+            <div class="am-padding-vertical-xl">
+                <button type="button" class="am-btn am-btn-primary am-btn-xs am-radius login-event">{{:MyLang('user.login_ahora_login_title')}}</button>
+            </div>
+        {{/if}}
+    </div>
+</div>
+<!-- content end -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

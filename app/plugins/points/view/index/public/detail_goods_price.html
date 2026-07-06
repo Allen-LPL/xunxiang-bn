@@ -1,0 +1,13 @@
+<div class="items plugins-points-goods-price-top">
+    <div class="price">
+        <dt>
+            <a href="{{:PluginsHomeUrl('points', 'index', 'index')}}">{{$points_icon}}</a>
+        </dt>
+        <dd>
+            <b class="am-text-xl">{{$points_value}}</b>
+            {{if !empty($points_unit)}}
+                <span class="am-text-grey am-text-xs">{{$points_unit}}</span>
+            {{/if}}
+        </dd>
+    </div>
+</div>

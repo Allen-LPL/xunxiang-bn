@@ -1,0 +1,70 @@
+<!-- 继承公共的 form -->
+{{extend name="../../../module/view/form_table/form" /}}
+
+<!-- 表单顶部操作栏 -->
+{{block name="form_operate_top"}}
+    <!-- nav -->
+    {{:ModuleInclude('public/plugins_admin_nav', [
+        'plugins'   => 'wallet',
+        'nav_data'  => $plugins_nav_menu_list,
+    ])}}
+
+    <!-- 父级内容 -->
+    {__block__}
+{{/block}}
+
+<!-- 扩展 -->
+{{block name="form_extend"}}
+    <!-- 支付方式 -->
+    <div class="am-popup am-radius" id="plugins-wallet-recharge-pay-popup">
+        <div class="am-popup-inner">
+            <div class="am-popup-hd">
+                <h4 class="am-popup-title">支付确认</h4>
+                <span data-am-modal-close class="am-close">&times;</span>
+            </div>
+            <div class="am-popup-bd">
+                <form class="am-form form-validation am-form-popup-fixed" action="{{:PluginsAdminUrl('wallet', 'recharge', 'pay')}}" method="POST" request-type="ajax-reload">
+                    <div class="am-alert am-alert-secondary">
+                        <ul class="base">
+                            <li>充值单号：<span class="recharge-no">...</span></li>
+                            <li>充值金额：<strong class="price am-text-danger">...</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="business-list business-list-nbfc">
+                        {{if !empty($payment_list)}}
+                            <ul class="am-avg-sm-2 am-avg-md-3 payment-list" data-type="payment">
+                                {{foreach $payment_list as $payment}}
+                                    <li class="am-padding-sm" data-value="{{$payment.id}}">
+                                        <div class="business-item am-nbfc am-padding-sm am-radius">
+                                            {{if !empty($payment.logo)}}
+                                                <img src="{{$payment.logo}}" class="am-radius" />
+                                            {{/if}}
+                                            <span>{{$payment.name}}</span>
+                                            <i class="iconfont icon-subscript"></i>
+                                        </div>
+                                    </li>
+                                {{/foreach}}
+                            </ul>
+                        {{else /}}
+                            {{:ModuleInclude('public/not_data')}}
+                        {{/if}}
+                    </div>
+
+                    <div class="am-form-popup-submit">
+                        <input type="hidden" name="recharge_id" value="" />
+                        <input type="hidden" name="payment_id" value="" />
+                        <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                            <i class="am-icon-paint-brush"></i>
+                            <span>{{:MyLang('cancel_title')}}</span>
+                        </button>
+                        <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('confirm_payment_title')}}'}">
+                            <i class="am-icon-check"></i>
+                            <span>{{:MyLang('confirm_payment_title')}}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{{/block}}

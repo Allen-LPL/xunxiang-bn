@@ -1,0 +1,74 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+	<div class="content">
+        <!-- nav start -->
+        {{if !isset($is_theme_data_admin) or $is_theme_data_admin eq 0}}
+            {{:ModuleInclude('public/admin_nav', [
+                'title'     => MyLang('supplier.base_nav_title').(empty($data['id']) ? MyLang('created_title') : MyLang('edit_title')),
+                'back_url'  => MyUrl('admin/supplier/index', $params)
+            ])}}
+        {{/if}}
+        <!-- nav end -->
+        <!-- form start -->
+        <form class="am-form form-validation am-form-full-screen am-form-popup-sticky" action="{{:MyUrl('admin/supplier/save')}}" method="POST" request-type="{{if !isset($is_theme_data_admin) or $is_theme_data_admin eq 0}}ajax-url{{else /}}ajax-reload{{/if}}" request-value="{{if !isset($is_theme_data_admin) or $is_theme_data_admin eq 0}}{{:MyUrl('admin/supplier/index', $params)}}{{else /}}parent{{/if}}">
+            <div class="am-form-group">
+                <label>{{:MyLang('common_service.supplier.form_item_name')}}<span class="am-form-group-label-tips-must">*</span></label>
+                <input type="text" name="name" placeholder="{{:MyLang('common_service.supplier.form_item_name_message')}}" minlength="1" maxlength="80" data-validation-message="{{:MyLang('common_service.supplier.form_item_name_message')}}" class="am-radius" {{if !empty($data['name'])}} value="{{$data.name}}"{{/if}} required />
+            </div>
+            
+            <div class="am-form-group">
+                <label>{{:MyLang('common_service.supplier.form_item_contact')}}</label>
+                <input type="text" placeholder="{{:MyLang('common_service.supplier.form_item_contact_placeholder')}}" name="contact"  data-validation-message="{{:MyLang('common_service.supplier.form_item_contact_message')}}" class="am-radius" {{if !empty($data['contact'])}} value="{{$data.contact}}"{{/if}} />
+            </div>
+
+            <div class="am-form-group">
+                <label>{{:MyLang('common_service.supplier.form_item_mobile')}}</label>
+                <input type="text" placeholder="{{:MyLang('common_service.supplier.form_item_mobile_placeholder')}}" name="mobile"  data-validation-message="{{:MyLang('common_service.supplier.form_item_mobile_message')}}" class="am-radius" {{if !empty($data['mobile'])}} value="{{$data.mobile}}"{{/if}} />
+            </div>
+
+            <div class="am-form-group">
+                <label>{{:MyLang('common_service.supplier.form_item_openid')}}</label>
+                <input type="text" placeholder="{{:MyLang('common_service.supplier.form_item_openid_placeholder')}}" name="openid"  data-validation-message="{{:MyLang('common_service.supplier.form_item_openid_message')}}" class="am-radius" {{if !empty($data['openid'])}} value="{{$data.openid}}"{{/if}} />
+            </div>
+            
+            {{:ModuleInclude('lib/sort')}}
+            
+            {{:ModuleInclude('lib/is_enable')}}
+
+            <!-- 插件扩展数据 start -->
+            {{if isset($shopxo_is_develop) and $shopxo_is_develop eq true}}
+                <div class="plugins-tag">
+                    <span>plugins_view_admin_supplier_save</span>
+                </div>
+            {{/if}}
+            {{if !empty($plugins_view_admin_supplier_save_data) and is_array($plugins_view_admin_supplier_save_data)}}
+                <div class="card-grey">
+                    <label class="am-text-sm">{{:MyLang('plugins_view_region_config_tips')}}</label>
+                    <div>
+                        {{foreach $plugins_view_admin_supplier_save_data as $hook}}
+                            {{if is_string($hook) or is_int($hook)}}
+                                {{$hook|raw}}
+                            {{/if}}
+                        {{/foreach}}
+                    </div>
+                </div>
+            {{/if}}
+            <!-- 插件扩展数据 end -->
+
+            <div class="am-form-popup-submit">
+                <input type="hidden" name="id" {{if !empty($data)}} value="{{$data.id}}"{{/if}} />
+                <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('save_title')}}'}">
+                    <i class="am-icon-save"></i>
+                    <span>{{:MyLang('save_title')}}</span>
+                </button>
+            </div>
+        </form>
+        <!-- form end -->
+	</div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

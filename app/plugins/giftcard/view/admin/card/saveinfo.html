@@ -1,0 +1,111 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        <!-- form start -->
+        <form class="am-form form-validation am-form-full-screen am-form-popup-fixed" action="{{:PluginsAdminUrl('giftcard', 'card', 'save')}}" method="POST" request-type="ajax-reload" request-value="parent">
+            <div class="am-form-group row">
+                <label>名称<span class="am-form-group-label-tips-must">*</span></label>
+                <input type="text" name="name" placeholder="名称" maxlength="30" data-validation-message="名称格式最多30个字符" class="am-radius" value="{{if !empty($data['name'])}}{{$data.name}}{{/if}}" required />
+            </div>
+            {{if !isset($data['card_count']) or $data['card_count'] eq 0}}
+                <div class="am-form-group row">
+                    <label class="am-block">礼品卡分类<span class="am-form-group-label-tips-must">*</span></label>
+                    <select name="category_id" class="am-radius chosen-select" data-placeholder="{{:MyLang('please_select_tips')}}" data-validation-message="请选择礼品卡分类" required>
+                        {{if !empty($category_list)}}
+                            <option value="">{{:MyLang('please_select_tips')}}</option>
+                            {{foreach $category_list as $v}}
+                                <option value="{{$v.id}}" {{if isset($data['category_id']) and $data['category_id'] eq $v['id']}}selected{{/if}}>{{$v.name}}</option>
+                            {{/foreach}}
+                        {{/if}}
+                    </select>
+                </div>
+                <div class="am-form-group row">
+                    <label class="am-block">卡密类型<span class="am-form-group-label-tips-must">*</span></label>
+                    <div class="am-radio-group">
+                        {{if !empty($card_data_type_list)}}
+                            {{foreach $card_data_type_list as $v}}
+                                <label class="am-radio-inline">
+                                    <input type="radio" value="{{$v.value}}" data-type="{{$v.type}}" name="data_type" data-am-ucheck {{if (!isset($data['data_type']) and isset($v['checked']) and $v['checked'] eq true) or (isset($data['data_type']) and $data['data_type'] eq $v['value'])}}checked{{/if}} data-validation-message="请选择卡密类型" required /> {{$v.name}}
+                                </label>
+                            {{/foreach}}
+                        {{/if}}
+                    </div>
+                </div>
+                <div class="card-container wallet-container {{if isset($data['data_type']) and $data['data_type'] neq 0}}am-hide{{/if}}">
+                <div class="am-form-group row">
+                        <label>钱包金额<span class="am-form-group-label-tips-must">*</span></label>
+                        <input type="text" name="money" placeholder="钱包金额" data-validation-message="请填写钱包金额" class="am-radius" value="{{if isset($data['data_type']) and $data['data_type'] eq 0 and !empty($data['secret_value']) and $data['secret_value'] gt 0}}{{$data.secret_value}}{{/if}}" />
+                    </div>
+                </div>
+                <div class="card-container coupon-container {{if !isset($data['data_type']) or $data['data_type'] neq 1}}am-hide{{/if}}">
+                    <div class="am-form-group row">
+                        <label>可兑换优惠券<span class="am-form-group-label-tips-must">*</span></label>
+                        <select name="coupon_id" class="am-radius chosen-select" data-placeholder="{{:MyLang('optional_tips')}}" data-validation-message="请选择优惠券">
+                            {{if !empty($coupon_list)}}
+                                <option value="">{{:MyLang('optional_tips')}}</option>
+                                {{foreach $coupon_list as $v}}
+                                    <option value="{{$v.id}}" {{if isset($data['data_type']) and $data['data_type'] eq 1 and isset($data['secret_value']) and $data['secret_value'] eq $v['id']}}selected{{/if}}>{{$v.name}}({{$v.desc}})</option>
+                                {{/foreach}}
+                            {{/if}}
+                        </select>
+                    </div>
+                </div>
+                <div class="card-container points-container {{if !isset($data['data_type']) or $data['data_type'] neq 2}}am-hide{{/if}}">
+                    <div class="am-form-group row">
+                        <label>可兑换积分<span class="am-form-group-label-tips-must">*</span></label>
+                        <input type="number" name="points" min="0" placeholder="可兑换积分" data-validation-message="请填写可兑换积分" class="am-radius" value="{{if isset($data['data_type']) and $data['data_type'] eq 2 and !empty($data['secret_value'])}}{{$data.secret_value}}{{/if}}" />
+                    </div>
+                </div>
+                <div class="card-container goods-container {{if !isset($data['data_type']) or $data['data_type'] neq 3}}am-hide{{/if}}">
+                    <div class="am-form-group row">
+                        <label>可兑换商品id<a href="javascript:;" class="am-icon-question-circle am-margin-left-xs" data-am-popover="{content: '1. 多个商品id使用半角逗号分割(卡只能使用一次)<br />2. 商品管理列表可以找到商品id', trigger: 'hover focus', theme: 'sm'}"></a><span class="am-form-group-label-tips-must">*</span></label>
+                        <input type="text" name="goods" placeholder="可兑换商品id" data-validation-message="请填写可兑换商品id" class="am-radius" value="{{if isset($data['data_type']) and $data['data_type'] eq 3 and !empty($data['secret_value'])}}{{$data.secret_value}}{{/if}}" />
+                    </div>
+                </div>
+                <div class="am-form-group row">
+                    <label class="am-block">生成方式<span class="am-form-group-label-tips-must">*</span></label>
+                    <div class="am-radio-group">
+                        {{if !empty($card_generate_type_list)}}
+                            {{foreach $card_generate_type_list as $v}}
+                                <label class="am-radio-inline">
+                                    <input type="radio" value="{{$v.value}}" name="generate_type" data-am-ucheck {{if (!isset($data['generate_type']) and isset($v['checked']) and $v['checked'] eq true) or (isset($data['generate_type']) and $data['generate_type'] eq $v['value'])}}checked{{/if}} data-validation-message="请选择生成方式" required /> {{$v.name}}
+                                </label>
+                            {{/foreach}}
+                        {{/if}}
+                    </div>
+                </div>
+                <div class="am-form-group row">
+                    <label>卡密前缀</label>
+                    <input type="text" name="prefix" placeholder="卡密前缀" maxlength="60" data-validation-message="卡密前缀最多60个字符" class="am-radius" value="{{if !empty($data['prefix'])}}{{$data.prefix}}{{/if}}" />
+                </div>
+            {{/if}}
+            <div class="am-form-group row">
+                <label>备注</label>
+                <input type="text" name="note" placeholder="备注" maxlength="200" data-validation-message="备注最多200个字符" class="am-radius" value="{{if !empty($data['note'])}}{{$data.note}}{{/if}}" />
+            </div>
+            <div class="am-form-group row">
+                <label class="am-block">{{:MyLang('form_is_enable_title')}}</label>
+                <input name="is_enable" value="1" type="checkbox" data-off-text="{{:MyLang('no_title')}}" data-on-text="{{:MyLang('yes_title')}}" data-size="xs" data-on-color="success" data-off-color="default" data-handle-width="50" data-am-switch {{if !isset($data['is_enable']) or (isset($data['is_enable']) and $data['is_enable'] eq 1)}}checked="true"{{/if}} />
+            </div>
+
+            <div class="am-form-popup-submit">
+                <input type="hidden" name="id" value="{{if !empty($data['id'])}}{{$data.id}}{{/if}}" />
+                <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                    <i class="am-icon-paint-brush"></i>
+                    <span>{{:MyLang('cancel_title')}}</span>
+                </button>
+                <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('save_title')}}'}">
+                    <i class="am-icon-save"></i>
+                    <span>{{:MyLang('save_title')}}</span>
+                </button>
+            </div>
+        </form>
+        <!-- form end -->
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

@@ -1,0 +1,36 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- content start  -->
+<div class="am-padding-lg">
+    <form class="am-form form-validation am-form-full-screen am-form-popup-fixed" action="{{:PluginsHomeUrl('giftcard', 'index', 'exchange')}}" method="POST" request-type="ajax-reload" request-value="parent">
+        <div class="am-form-group am-margin-top-sm">
+            <label>卡密key</label>
+            <div class="am-form-icon am-nbfc">
+                <i class="am-icon-camera common-scan-submit" data-back-fun="OrderTakeScanBackHandle"></i>
+                <input type="text" name="secret_key" value="" autocomplete="off" placeholder="请输入卡密key" data-validation-message="请输入卡密key" class="am-radius am-form-field" required />
+            </div>
+        </div>
+        <div class="am-form-popup-submit">
+            <button type="button" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg" data-am-modal-close>
+                <i class="am-icon-paint-brush"></i>
+                <span>{{:MyLang('cancel_title')}}</span>
+            </button>
+            <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('confirm_title')}}'}">
+                <i class="am-icon-check"></i>
+                <span>{{:MyLang('confirm_title')}}</span>
+            </button>
+        </div>
+    </form>
+</div>
+<!-- content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}
+<script type="text/javascript">
+    // 扫码回调
+    function OrderTakeScanBackHandle(value)
+    {
+        $('form.form-validation input[name="secret_key"]').val(value);
+        $('form.form-validation button[type="submit"]').trigger('click');
+    }
+</script>

@@ -1,0 +1,27 @@
+<!-- 继承公共的 form -->
+{{extend name="../../../module/view/form_table/form" /}}
+
+<!-- 表单顶部操作栏 -->
+{{block name="form_operate_top"}}
+    <!-- nav -->
+    {{:ModuleInclude('public/plugins_admin_nav', [
+        'plugins'   => 'wallet',
+        'nav_data'  => $plugins_nav_menu_list,
+    ])}}
+
+    <!-- 父级内容 -->
+    {__block__}
+
+    {{if AdminIsPower('cashpayment', 'index')}}
+        <button type="button" class="am-btn am-btn-default-plain am-radius am-btn-xs submit-popup" data-offcanvas="right" data-url="{{:PluginsAdminUrl('wallet', 'cashpayment', 'index')}}" data-title="提现支付日志">
+            <i class="iconfont icon-wechart am-show-sm-only"></i>
+            <span>提现支付日志</span>
+        </button>
+    {{/if}}
+    {{if AdminIsPower('config', 'index')}}
+        <button type="button" class="am-btn am-btn-default-plain am-radius am-btn-xs submit-popup" data-url="{{:PluginsAdminUrl('wallet', 'config', 'index')}}" data-title="配置信息">
+            <i class="am-icon-database am-show-sm-only"></i>
+            <span>配置信息</span>
+        </button>
+    {{/if}}
+{{/block}}

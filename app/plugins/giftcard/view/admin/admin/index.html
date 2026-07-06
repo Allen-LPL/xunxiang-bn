@@ -1,0 +1,95 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        <!-- nav -->
+        {{:ModuleInclude('public/plugins_admin_nav', [
+            'plugins'   => 'giftcard',
+            'nav_data'  => $plugins_nav_menu_list,
+        ])}}
+
+        <div class="giftcard-content am-padding-bottom-xs">
+            <!-- 基础配置 -->
+            <div class="am-panel am-panel-default am-radius giftcard-content-base">
+                <div class="am-panel-hd">
+                    <span class="am-panel-title">{{:MyLang('base_config_title')}}</span>
+                    <a class="am-margin-left-lg" href="{{:PluginsAdminUrl('giftcard', 'admin', 'saveinfo')}}">
+                        <i class="am-icon-edit"></i>
+                        <span>{{:MyLang('edit_title')}}</span>
+                    </a>
+                </div>
+                <div class="am-panel-bd">
+                    <!-- 基础配置 -->
+                    <h2 class="am-padding-bottom-xs">{{:MyLang('base_config_title')}}</h2>
+                    <ul class="am-avg-sm-2 am-avg-md-4 am-avg-lg-4 am-gallery-default">
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启用户中心菜单入口</label>
+                                <div>
+                                    {{if isset($data['is_user_menu']) and $data['is_user_menu'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>用户中心菜单入口名称</label>
+                                <div>
+                                    {{if empty($data['user_menu_name'])}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{$data.user_menu_name}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启礼品卡兑换入口</label>
+                                <div>
+                                    {{if isset($data['is_card_exchange']) and $data['is_card_exchange'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启商品兑换</label>
+                                <div>
+                                    {{if isset($data['is_goods_exchange']) and $data['is_goods_exchange'] eq 1}}
+                                        {{:MyLang('yes_title')}}
+                                    {{else /}}
+                                        <span class="am-text-grey">{{:MyLang('no_title')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品详情页面按钮兑换名称</label>
+                                <div>
+                                    {{if empty($data['goods_detail_buy_btn_exchange_text'])}}
+                                        <span class="am-text-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{$data.goods_detail_buy_btn_exchange_text}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

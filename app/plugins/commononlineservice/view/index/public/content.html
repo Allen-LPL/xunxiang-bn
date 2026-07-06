@@ -1,0 +1,73 @@
+<div class="commononlineservice" {{if isset($data['distance_top'])}} style="top:{{$data.distance_top}}%"{{/if}}>
+    <div class="float-left" style="{{if !empty($data['bg_color'])}}background: {{$data.bg_color}};{{/if}}">
+        <a class="btn-open" href="javascript:void(0);" {{if !empty($data['online_service_btn'])}}style="background-image: url({{$data.online_service_btn}});{{/if}}">展开</a>
+        <a class="btn-ctn" href="javascript:void(0);" {{if !empty($data['online_service_btn'])}}style="background-image: url({{$data.online_service_btn}});{{/if}}">收缩</a>
+    </div>
+    <div class="content" style="{{if !empty($data['bg_color'])}}background: {{$data.bg_color}};{{/if}}">
+        <div class="cn am-radius">
+            {{if !empty($data['title'])}}
+                <h3 class="title">{{$data.title}}</h3>
+            {{/if}}
+            {{if !empty($data['qrcode_images'])}}
+                <div class="qrcode">
+                    <img src="{{$data.qrcode_images}}" class="am-radius" />
+                    {{if !empty($data['qrcode_images_desc'])}}
+                        <p>{{$data.qrcode_images_desc}}</p>
+                    {{/if}}
+                </div>
+            {{/if}}
+            {{if !empty($data['plugins_chat_data']) or !empty($data['online_service_qq']) or !empty($data['online_service_whatsapp']) or !empty($data['tel'])}}
+                <ul>
+                    {{if !empty($data['plugins_chat_data'])}}
+                        <!-- 在线客服插件 -->
+                        <li>
+                            <a href="javascript:;" class="service-btn commononlineservice-plugins-chat-entry-event" data-chat-url="{{$data.plugins_chat_data.chat_url}}" data-is-open-new-win="{{$data.plugins_chat_data.is_new_open}}">
+                                <img border="0" src="{{$data.plugins_chat_data.icon}}" />
+                                {{if !empty($data['plugins_chat_btn_text']) or !empty($data['plugins_chat_data']['name'])}}
+                                    <span class="am-margin-left-xs">{{if !empty($data['plugins_chat_btn_text'])}}{{$data.plugins_chat_btn_text}}{{else /}}{{if !empty($data['plugins_chat_data']['name'])}}{{$data.plugins_chat_data.name}}{{/if}}{{/if}}</span>
+                                {{/if}}
+                            </a>
+                        </li>
+                    {{/if}}
+                    {{if !empty($data['online_service_qq'])}}
+                        <!-- QQ -->
+                        {{foreach name=$data.online_service_qq as $v}}
+                            <li>
+                                {{if IsMobile()}}
+                                    <a target="_blank" rel="noopener noreferrer" href="mqqwpa://im/chat?chat_type=wpa&uin={{$v[1]}}&version=1&src_type=web&web_src=shopxo.net" class="service-btn">
+                                {{else /}}
+                                    <a target="_blank" rel="noopener noreferrer" href="https://wpa.qq.com/msgrd?v=3&amp;uin={{$v[1]}}&amp;site=qq&amp;menu=yes" class="service-btn">
+                                {{/if}}
+                                    <img border="0" src="{{$qq_icon}}" />
+                                    <span class="am-margin-left-xs">{{if empty($v[0])}}{{$v[1]}}{{else /}}{{$v[0]}}{{/if}}</span>
+                                </a>
+                            </li>
+                        {{/foreach}}
+                    {{/if}}
+                    {{if !empty($data['online_service_whatsapp'])}}
+                        <!-- whatsapp -->
+                        {{foreach name=$data.online_service_whatsapp as $v}}
+                            <li>
+                                <a target="_blank" rel="noopener noreferrer" href="{{$v[1]}}" class="service-btn">
+                                    <img border="0" src="{{$whatsapp_icon}}" />
+                                    {{if !empty($v[0])}}
+                                        <span class="am-margin-left-xs">{{$v[0]}}</span>
+                                    {{/if}}
+                                </a>
+                            </li>
+                        {{/foreach}}
+                    {{/if}}
+                    {{if !empty($data['tel'])}}
+                        <!-- 电话 -->
+                        <li>
+                            <a href="tel:{{$data.tel}}">
+                                <i class="am-icon-phone"></i>
+                                <span>{{$data.tel}}</span>
+                            </a>
+                        </li>
+                    {{/if}}
+                </ul>
+            {{/if}}
+        </div>
+    </div>
+</div>

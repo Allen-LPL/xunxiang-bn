@@ -1,0 +1,23 @@
+{{if !empty($module_data['use_data']) and is_array($module_data['use_data'])}}
+    <ul>
+        {{foreach $module_data.use_data as $v}}
+            {{if !empty($v['goods_title']) and !empty($v['goods_url']) and !empty($v['order_no']) and !empty($v['use_time'])}}
+                <li>
+                    <span>订单编号:</span>
+                    <span class="text-copy-submit">
+                        <span>{{$v.order_no}}</span>
+                        <i class="iconfont icon-copy am-color-grey"></i>
+                    </span>
+                </li>
+                <li class="am-text-truncate">
+                    <span>订单商品:</span>
+                    <a href="{{$v.goods_url}}" target="_blank" class="am-color-blue">{{$v.goods_title}}</a>
+                </li>
+                <li class="am-text-truncate">
+                    <span>使用时间:</span>
+                    <span>{{$v.use_time}}</span>
+                </li>
+            {{/if}}
+        {{/foreach}}
+    </ul>
+{{/if}}

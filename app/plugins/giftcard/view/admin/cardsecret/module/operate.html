@@ -1,0 +1,16 @@
+<!-- 操作栏 -->
+{{if empty($module_data['images'])}}
+    <button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-ajax" data-url="{{:PluginsAdminUrl('giftcard', 'cardsecret', 'generate')}}" data-id="{{$module_data.id}}" data-key="id" data-is-confirm="0" data-is-loading="1" data-view="reload">
+        <i class="am-icon-gg"></i>
+        <span>{{:MyLang('generate_title')}}</span>
+    </button>
+{{else /}}
+    <a href="{{:MyUrl('admin/qrcode/download', ['url'=>urlencode(base64_encode($module_data.images)), 'filename'=>$module_data['secret_key']])}}" target="_blank" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block">
+        <i class="am-icon-download"></i>
+        <span>{{:MyLang('download_title')}}</span>
+    </a>
+{{/if}}
+<button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-offcanvas="right" data-url="{{:PluginsAdminUrl('giftcard', 'cardsecretlog', 'index', ['csid'=>$module_data['id']])}}" data-title="{{:MyLang('log_title')}}">
+    <i class="am-icon-list-ul"></i>
+    <span>{{:MyLang('log_title')}}</span>
+</button>

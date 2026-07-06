@@ -1,0 +1,122 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- header top nav -->
+{{:ModuleInclude('public/header_top_nav')}}
+
+<!-- search -->
+{{:ModuleInclude('public/nav_search')}}
+
+<!-- header nav -->
+{{:ModuleInclude('public/header_nav')}}
+
+<!-- goods category -->
+{{:ModuleInclude('public/goods_category')}}
+
+<!-- content -->
+<div class="am-container user-main">
+
+    <!-- user menu start -->
+    {{:ModuleInclude('public/user_menu')}}
+    <!-- user menu end -->
+
+    <!-- content start -->
+    <div class="user-content">
+        <div class="user-content-body">
+            <!-- user menu start -->
+            {{:ModuleInclude('../../../plugins/wallet/view/index/public/nav')}}
+            <!-- user menu end -->
+
+            {{if isset($check_status) and $check_status eq 1}}
+                {{if empty($user_cash_type_list)}}
+                    <div class="table-no">
+                        <i class="am-icon-warning"></i>
+                        <span>管理员未设置提现方式，请联系管理员处理！</span>
+                    </div>
+                {{else /}}
+                    <!-- form start -->
+                    <form class="am-form form-validation am-form-popup-sticky create-info" method="post" action="{{:PluginsHomeUrl('wallet', 'cash', 'create')}}" request-type="ajax-url" request-value="{{:PluginsHomeUrl('wallet', 'cash', 'index')}}">
+                        <div class="am-form-group">
+                            <label class="am-block">提现方式<span class="am-form-group-label-tips-must">*</span></label>
+                            <div class="am-radio-group">
+                                {{foreach $user_cash_type_list as $v}}
+                                    <label class="am-radio-inline">
+                                        <input type="radio" name="cash_type" value="{{$v.value}}" {{if isset($default_data['cash_type']) and $default_data['cash_type'] eq $v['value']}}checked{{/if}} data-validation-message="请选择提现方式" data-am-ucheck required /> {{$v.name}}
+                                    </label>
+                                {{/foreach}}
+                            </div>
+                            {{if empty($user_weixin_openid)}}
+                                <div class="weixin-auth-content am-margin-top-sm {{if !isset($default_data['cash_type']) or (isset($default_data['cash_type']) and $default_data['cash_type'] neq 1)}}am-hide{{/if}}">
+                                    <div class="view-qrcode-init" data-value="{{:PluginsHomeUrl('thirdpartylogin', 'index', 'login', ['platform'=>'weixin'])}}" data-width="150" data-height="150"></div>
+                                    <p class="am-color-grey">扫码授权成功后，刷新页面！</p>
+                                    <p class="am-margin-top-xs">
+                                        <span class="am-color-red am-margin-right-lg">提现到微信必须完成授权</span>
+                                        {{if IsMobile()}}
+                                            <a href="{{:PluginsHomeUrl('thirdpartylogin', 'index', 'login', ['platform'=>'weixin', 'redirect_url'=>urlencode(base64_encode(PluginsHomeUrl('wallet', 'cash', 'createinfo')))])}}" class="am-color-blue">点击去微信授权 >></a>
+                                        {{/if}}
+                                    </p>
+                                </div>
+                            {{/if}}
+                        </div>
+                        <div class="am-form-group">
+                            <label>提现金额<span class="am-form-group-label-tips-must">*</span></label>
+                            <input type="number" autocomplete="off" name="money" step="0.01" min="{{if !isset($plugins_config['cash_minimum_amount']) or $plugins_config['cash_minimum_amount'] elt 0}}0.00{{else /}}{{$plugins_config.cash_minimum_amount}}{{/if}}" max="{{$can_cash_max_money}}" class="am-form-field am-radius" placeholder="提现金额" data-validation-message="提现金额，最低{{$currency_symbol}}{{if !isset($plugins_config['cash_minimum_amount']) or $plugins_config['cash_minimum_amount'] elt 0}}0.01{{else /}}{{$plugins_config.cash_minimum_amount}}{{/if}}，最高{{$currency_symbol}}{{$can_cash_max_money}}" required />
+                            {{if isset($plugins_config['cash_minimum_amount']) and $plugins_config['cash_minimum_amount'] gt 0}}
+                                <p class="am-text-red am-margin-top-xs">提现最低金额 {{$currency_symbol}}{{$plugins_config.cash_minimum_amount}} 起</p>
+                            {{/if}}
+                            <div class="am-tips-card">
+                                <p>当前可提现金额 <span class="cash-vaild-mony">{{$currency_symbol}}{{$can_cash_max_money}}</span></p>
+                                <p>当前可用金额 <span class="cash-normal-mony">{{$currency_symbol}}{{$user_wallet.normal_money}}</span></p>
+                                <p>当前赠送金额 <span class="cash-give-mony">{{$currency_symbol}}{{$user_wallet.give_money}}</span>{{if empty($plugins_config) or !isset($plugins_config['is_cash_retain_give']) or $plugins_config['is_cash_retain_give'] eq 1}}<span class="am-margin-left am-text-red">赠送金额不可提现</span>{{/if}}</p>
+                                {{if !empty($plugins_config) and isset($plugins_config['cash_commission_rate']) and $plugins_config['cash_commission_rate'] gt 0}}
+                                    <p class="am-margin-top-xs am-text-red am-text-sm commission" data-rate="{{$plugins_config.cash_commission_rate}}">预计手续费 {{$currency_symbol}}<strong>0.00</strong></p>
+                                {{/if}}
+                            </div>
+                        </div>
+
+                        <div class="am-form-group cash-type-0 {{if !isset($default_data['cash_type']) or (isset($default_data['cash_type']) and $default_data['cash_type'] neq 0)}}am-hide{{/if}}">
+                            <label>收款平台<span class="am-form-group-label-tips-must">*</span></label>
+                            <input type="text" name="bank_name" value="{{if !empty($default_data['bank_name'])}}{{$default_data.bank_name}}{{/if}}" placeholder="收款平台" minlength="1" maxlength="60" data-validation-message="收款平台格式 1~60 个字符之间" class="am-radius" required />
+                            <div class="am-tips-card">
+                                强烈建议优先填写国有4大银行(中国银行、中国建设银行、中国工商银行和中国农业银行) 请填写详细的开户银行分行名称，虚拟账户如支付宝、财付通、微信 直接填写 相应的名称 即可。
+                            </div>
+                        </div>
+
+                        <div class="am-form-group cash-type-0 cash-type-2 {{if !isset($default_data['cash_type']) or (isset($default_data['cash_type']) and $default_data['cash_type'] eq 1)}}am-hide{{/if}}">
+                            <label>收款账号<span class="am-form-group-label-tips-must">*</span></label>
+                            <input type="text" name="bank_accounts" value="{{if !empty($default_data['bank_accounts'])}}{{$default_data.bank_accounts}}{{/if}}" placeholder="收款账号" minlength="1" maxlength="60" data-validation-message="收款账号格式 1~60 个字符之间" class="am-radius" required />
+                            <div class="am-tips-card">
+                                其他平台银行账号或虚拟账号(支付宝、财付通、微信号等...)
+                            </div>
+                        </div>
+
+                        <div class="am-form-group">
+                            <label>开户人姓名<span class="am-form-group-label-tips-must">*</span></label>
+                            <input type="text" name="bank_username" value="{{if !empty($default_data['bank_username'])}}{{$default_data.bank_username}}{{/if}}"placeholder="开户人姓名" minlength="1" maxlength="30" data-validation-message="开户人姓名格式 1~30 个字符之间" class="am-radius" required />
+                            <div class="am-tips-card">
+                                收款账号的开户人真实姓名，如银行卡、微信、支付宝则为当前账户实名认证的姓名
+                            </div>
+                        </div>
+
+                        <div class="am-form-popup-submit">
+                            <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText: '确认提现'}">
+                                <i class="am-icon-save"></i>
+                                <span>确认提现</span>
+                            </button>
+                        </div>
+                    </form>
+                    <!-- form end -->
+                {{/if}}
+            {{else /}}
+                <div class="table-no">
+                    <i class="am-icon-warning"></i>
+                    <span>安全验证已超时，请重新验证再操作</span>
+                    <a class="am-btn am-btn-link" href="{{:PluginsHomeUrl('wallet', 'cash', 'authinfo')}}">申请提现</a>
+                </div>
+            {{/if}}
+        </div>
+    </div>
+    <!-- content end -->
+</div>
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

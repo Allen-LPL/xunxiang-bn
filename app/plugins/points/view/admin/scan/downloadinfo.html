@@ -1,0 +1,23 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        {{if !empty($data) and !empty($data['batch_data']) and is_array($data['batch_data'])}}
+            <ul class="am-list am-list-static am-list-border am-radius am-margin-bottom-0">
+                {{foreach $data.batch_data as $v}}
+                    <li>
+                        <span>{{$v.batch_name}}</span>
+                        <a class="am-fr am-padding-0" href="{{:PluginsAdminUrl('points', 'scan', 'download', ['scan_id'=>$data['id'], 'batch_id'=>$v['batch_id']])}}" target="_blank">{{:MyLang('download_title')}}</a>
+                    </li>
+                {{/foreach}}
+            </ul>
+        {{else /}}
+            {{:ModuleInclude('public/not_data')}}
+        {{/if}}
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

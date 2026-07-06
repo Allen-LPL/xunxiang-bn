@@ -1,0 +1,112 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        <!-- nav -->
+        {{:ModuleInclude('public/plugins_admin_nav', [
+            'plugins'   => 'wallet',
+            'title'     => '提现审核',
+            'back_url'  => PluginsAdminUrl('wallet', 'cash', 'index', $params),
+        ])}}
+
+        <div class="cash-content">
+            {{if !empty($data)}}
+                <!-- form start -->
+                <form class="am-form form-validation am-form-full-screen am-form-popup-sticky" action="{{:PluginsAdminUrl('wallet', 'cash', 'audit')}}" method="POST" request-type="ajax-url" request-value="{{:PluginsAdminUrl('wallet', 'cash', 'index')}}">
+                    <div class="am-alert am-alert-secondary">
+                        <p class="am-alert-title">用户信息</p>
+                        {{if !empty($data['user'])}}
+                            {{:ModuleInclude('lib/module/user', $data)}}
+                        {{/if}}
+                        <div class="am-margin-top-sm">
+                            <span>有效金额：</span>
+                            <span class="normal-money">{{$currency_symbol}}{{$user_wallet.normal_money}}</span>
+                            <span class="am-margin-left-xl">冻结金额：</span>
+                            <span class="frozen-money">{{$currency_symbol}}{{$user_wallet.frozen_money}}</span>
+                            <span class="am-margin-left-xl">赠送金额：</span>
+                            <span class="give-money">{{$currency_symbol}}{{$user_wallet.give_money}}</span>
+                        </div>
+                    </div>
+
+                    <div class="am-alert">
+                        <p class="am-alert-title">收款信息</p>
+                        <p>
+                            <span>提现方式：</span>
+                            <span>{{$data.cash_type_name}}</span>
+                        </p>
+                        {{if $data.cash_type eq 0}}
+                            <p>
+                                <span>收款平台：</span>
+                                {{if !empty($data['bank_name'])}}
+                                    <span class="text-copy-submit" data-value="{{$data.bank_name}}">{{$data.bank_name}} <i class="iconfont icon-copy am-color-grey"></i></span>
+                                {{/if}}
+                            </p>
+                        {{/if}}
+                        <p>
+                            <span>收款账号：</span>
+                            <span class="text-copy-submit" data-value="{{$data.bank_accounts}}">{{$data.bank_accounts}} <i class="iconfont icon-copy am-color-grey"></i></span>
+                        </p>
+                        <p>
+                            <span>开户人姓名：</span>
+                            <span class="text-copy-submit" data-value="{{$data.bank_username}}">{{$data.bank_username}} <i class="iconfont icon-copy am-color-grey"></i></span>
+                        </p>
+               
+                        <p class="am-alert-title am-margin-top">申请信息</p>
+                        <p>
+                            <span>单号：</span>
+                            <span class="text-copy-submit" data-value="{{$data.cash_no}}">{{$data.cash_no}} <i class="iconfont icon-copy am-color-grey"></i></span>
+                        </p>
+                        <p>
+                            <span>金额：</span>
+                            <strong class="am-color-red text-copy-submit" data-value="{{$data.apply_money}}">{{$currency_symbol}}{{$data.apply_money}} <i class="iconfont icon-copy am-color-grey"></i></strong>
+                        </p>
+                    </div>
+
+                    <div class="am-form-group">
+                        <label>打款金额<span class="am-form-group-label-tips-must">*</span></label>
+                        <input type="number" name="pay_money" placeholder="打款金额" step="0.01" min="0.01" max="{{$data.money}}" pattern="{{$default_price_regex}}" data-validation-message="打款金额有误，最低{{$currency_symbol}}0.01，最高{{$currency_symbol}}{{$data.money}}" class="am-radius" value="{{$data.money}}" />
+                        <div class="am-tips-card">
+                            {{if isset($data['commission']) and $data['commission'] gt 0}}
+                                <p>当前提现手续费 [ <strong class="am-color-yellow">{{$currency_symbol}}{{$data.commission}}</strong> ]</p>
+                                <p>打款金额 [ <strong class="am-color-red">{{$currency_symbol}}{{$data.money}}</strong> ]，已扣除手续费</p>
+                            {{else /}}
+                                <p>打款金额 [ <strong class="am-color-red">{{$currency_symbol}}{{$data.money}}</strong> ]，不能高于提现金额</p>
+                            {{/if}}
+                        </div>
+                    </div>
+
+                    <div class="am-form-group">
+                      <label>备注<span class="am-form-group-label-tips">用户可见</span></label>
+                      <textarea class="am-radius" name="msg" rows="3" maxlength="180" placeholder="备注最多 180 个字符" data-validation-message="备注格式最多 80 个字符"></textarea>
+                    </div>
+
+                    <div class="am-form-group">
+                        <label class="am-block">发送站内信</label>
+                        <input name="is_send_message" value="1" type="checkbox" data-off-text="{{:MyLang('no_title')}}" data-on-text="{{:MyLang('yes_title')}}" data-size="xs" data-on-color="success" data-off-color="default" data-handle-width="50" data-am-switch checked="true" />
+                    </div>
+
+                    <div class="am-form-popup-submit">
+                        <input type="hidden" name="id" {{if !empty($data['id'])}} value="{{$data.id}}"{{/if}} />
+                        <input type="hidden" name="type" />
+                        <button type="submit" class="am-btn am-btn-danger am-radius btn-loading-example am-btn-xs" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('refuse_title')}}'}" data-type="refuse">
+                            <i class="am-icon-warning"></i>
+                            <span>{{:MyLang('refuse_title')}}</span>
+                        </button>
+                        <button type="submit" class="am-btn am-btn-primary am-radius btn-loading-example am-btn-xs" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('audit_title')}}'}" data-type="agree">
+                            <i class="am-icon-check"></i>
+                            <span>{{:MyLang('audit_title')}}</span>
+                        </button>
+                    </div>
+                </form>
+                <!-- form end -->
+            {{else /}}
+                <div class="table-no"><i class="am-icon-warning"></i> {{$msg}}</div>
+            {{/if}}
+        </div>
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

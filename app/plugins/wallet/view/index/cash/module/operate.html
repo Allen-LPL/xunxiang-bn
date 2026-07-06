@@ -1,0 +1,11 @@
+<!-- 操作栏 -->
+<button type="button" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block submit-popup" data-url="{{:PluginsHomeUrl('wallet', 'cash', 'detail', ['id'=>$module_data['id']])}}" data-title="{{:MyLang('detail_title')}}">
+    <i class="am-icon-eye"></i>
+    <span>{{:MyLang('detail_title')}}</span>
+</button>
+{{if $module_data['status'] eq 1}}
+    <a href="{{:PluginsHomeUrl('wallet', 'cash', 'receiveinfo', ['id'=>$module_data['id']])}}" class="am-btn am-btn-default am-btn-xs am-radius am-btn-block" target="_blank">
+        <i class="iconfont icon-wait-payment"></i>
+        <span>{{:MyLang('collection_fee_title')}}</span>
+    </a>
+{{/if}}

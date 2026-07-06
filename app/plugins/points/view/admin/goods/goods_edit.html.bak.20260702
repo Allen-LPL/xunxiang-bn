@@ -1,0 +1,17 @@
+<div class="card-grey">
+    <h2 class="am-margin-vertical-0">积分商城兑换</h2>
+    <div>
+        <div class="am-form-group row am-padding-bottom-0">
+            <label>积分/价格兑换</label>
+            <div class="am-g">
+                <input type="number" name="plugins_points_exchange_integral" placeholder="积分兑换" min="0" max="1000000000" data-validation-message="请填写积分兑换、最大1000000000" class="am-radius" value="{{if !empty($plugins_data['plugins_points_exchange_integral'])}}{{$plugins_data.plugins_points_exchange_integral}}{{/if}}" />
+                <input type="number" name="plugins_points_exchange_price" placeholder="加金额" min="0" max="1000000000" step="0.01" data-validation-message="请填写加金额、最大1000000000" class="am-radius am-margin-top-xs" value="{{if !empty($plugins_data['plugins_points_exchange_price']) and $plugins_data['plugins_points_exchange_price'] gt 0}}{{$plugins_data.plugins_points_exchange_price}}{{/if}}" />
+            </div>
+        </div>
+        <div class="am-tips-card am-margin-top-sm">
+            <p>1.（兑换积分）默认0或空 则不支持兑换</p>
+            <p>2.（加金额）0或空 则是纯积分兑换、填写则 积分+金额</p>
+            <p class="am-color-red am-margin-top-xs">注意：（加金额）仅【商品纯兑换模式】下有效</p>
+        </div>
+    </div>
+</div>

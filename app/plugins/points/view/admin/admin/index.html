@@ -1,0 +1,470 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        <!-- nav -->
+        {{:ModuleInclude('public/plugins_admin_nav', [
+            'plugins'   => 'points',
+            'nav_data'  => $plugins_nav_menu_list,
+        ])}}
+
+        <div class="points-content am-padding-bottom-xs">
+            <!-- 基础配置 -->
+            <div class="am-panel am-panel-default am-radius points-content-base">
+                <div class="am-panel-hd">
+                    <span class="am-panel-title">{{:MyLang('base_config_title')}}</span>
+                    {{if AdminIsPower('admin', 'saveinfo')}}
+                        <a class="am-margin-left-lg" href="{{:PluginsAdminUrl('points', 'admin', 'saveinfo')}}">
+                            <i class="am-icon-edit"></i>
+                            <span>{{:MyLang('edit_title')}}</span>
+                        </a>
+                    {{/if}}
+                </div>
+                <div class="am-panel-bd">
+                    <ul class="am-avg-sm-2 am-avg-md-4 am-avg-lg-4 am-gallery-default">
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>应用导航名称</label>
+                                <div>
+                                    {{if empty($data['application_name'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.application_name}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启快捷导航入口</label>
+                                <div>
+                                    {{if isset($data['is_user_quick']) and $data['is_user_quick'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启默认使用积分</label>
+                                <div>
+                                    {{if isset($data['is_default_use_points']) and $data['is_default_use_points'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启首页积分明细</label>
+                                <div>
+                                    {{if isset($data['is_home_points_record']) and $data['is_home_points_record'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提示信息</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if !empty($data['points_desc'])}}
+                                        {{:implode('<br />', $data['points_desc'])}}
+                                    {{else /}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>底部代码</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if !empty($data['footer_code'])}}
+                                        {{$data.footer_code|raw}}
+                                    {{else /}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启积分抵扣</label>
+                                <div>
+                                    {{if isset($data['is_integral_deduction']) and $data['is_integral_deduction'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>抵扣比例-金额</label>
+                                <div>
+                                    {{if empty($data['deduction_price'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.deduction_price}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>订单最多支持积分抵扣数</label>
+                                <div>
+                                    {{if empty($data['order_max_integral'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.order_max_integral}}积分 ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>订单金额最多可抵扣比例</label>
+                                <div>
+                                    {{if empty($data['order_price_max_rate'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.order_price_max_rate}}% ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>订单需满足金额可用</label>
+                                <div>
+                                    {{if empty($data['order_total_price'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.order_total_price}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启积分兑换</label>
+                                <div>
+                                    {{if isset($data['is_integral_exchange']) and $data['is_integral_exchange'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品管理（可配置兑换积分）</label>
+                                <div>
+                                    {{if isset($data['is_admin_goods_integral_exchange']) and $data['is_admin_goods_integral_exchange'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                    {{if isset($data['is_admin_goods_integral_exchange_shop']) and $data['is_admin_goods_integral_exchange_shop'] eq 1}}
+                                        <span class="am-badge am-badge-success am-radius am-margin-left-xs">支持多商户</span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品纯兑换模式</label>
+                                <div>
+                                    {{if isset($data['is_pure_exchange_modal']) and $data['is_pure_exchange_modal'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品详情去掉加入购物车</label>
+                                <div>
+                                    {{if isset($data['is_goods_detail_integral_exchange_hide_cart']) and $data['is_goods_detail_integral_exchange_hide_cart'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品详情兑换图标</label>
+                                <div>
+                                    {{if empty($data['goods_detail_icon'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.goods_detail_icon}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品详情面板兑换提示信息</label>
+                                <div>
+                                    {{if empty($data['goods_detail_panel'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.goods_detail_panel}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>商品详情标题icon</label>
+                                <div>
+                                    {{if empty($data['goods_detail_title_icon'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.goods_detail_title_icon}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>web端左侧用户背景图片</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['home_user_bg_web_images'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.home_user_bg_web_images}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.home_user_bg_web_images}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>web端横幅图片</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['home_banner_web_images'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.home_banner_web_images}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.home_banner_web_images}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>手机端横幅图片</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['home_banner_app_images'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.home_banner_app_images}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.home_banner_app_images}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>开启注册奖励积分</label>
+                                <div>
+                                    {{if isset($data['is_register_reward_integral']) and $data['is_register_reward_integral'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>是否为强制被邀请注册</label>
+                                <div>
+                                    {{if isset($data['is_force_register']) and $data['is_force_register'] eq 1}}{{:MyLang('yes_title')}}{{else /}}<span class="am-color-grey">{{:MyLang('no_title')}}</span>{{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>注册人奖励积分</label>
+                                <div>
+                                    {{if empty($data['register_reward_integral'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.register_reward_integral}}积分 ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>邀请人奖励积分</label>
+                                <div>
+                                    {{if empty($data['invite_reward_integral'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.invite_reward_integral}}积分 ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>{{:MyLang('form_seo_title_title')}}</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if empty($data['seo_title'])}}
+                                        {{:MyLang('no_setup_tips')}}SEO标题
+                                    {{else /}}
+                                        {{$data.seo_title}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>{{:MyLang('form_seo_keywords_title')}}</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if empty($data['seo_keywords'])}}
+                                        {{:MyLang('no_setup_tips')}}SEO关键字
+                                    {{else /}}
+                                        {{$data.seo_keywords}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>{{:MyLang('form_seo_desc_title')}}</label>
+                                <div class="am-scrollable-vertical">
+                                    {{if empty($data['seo_desc'])}}
+                                        {{:MyLang('no_setup_tips')}}SEO描述
+                                    {{else /}}
+                                        {{$data.seo_desc}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>领取成功提示信息</label>
+                                <div>
+                                    {{if empty($data['scan_success_tips'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.scan_success_tips}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>已被领取提示信息</label>
+                                <div>
+                                    {{if empty($data['scan_fail_tips'])}}
+                                        {{:MyLang('no_setup_tips')}}
+                                    {{else /}}
+                                        {{:MyLang('already_setup_tips')}}[ {{$data.scan_fail_tips}} ]
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提示页面顶部banner</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['scan_top_banner'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.scan_top_banner}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.scan_top_banner}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>提示页面底部图片</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['scan_bottom_images'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.scan_bottom_images}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.scan_bottom_images}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>领取成功提示图片</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['scan_success_images'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.scan_success_images}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.scan_success_images}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="items am-padding-sm">
+                                <label>领取失败提示图片</label>
+                                <div class="immages-tag">
+                                    {{if empty($data['scan_fail_images'])}}
+                                        <span class="am-color-grey">{{:MyLang('no_setup_tips')}}</span>
+                                    {{else /}}
+                                        <img src="{{$data.scan_fail_images}}" class="am-img-thumbnail am-radius common-annex-view-event" data-value="{{$data.scan_fail_images}}" />
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 横幅图片链接地址 -->
+            <div class="am-panel am-panel-default am-radius">
+                <div class="am-panel-hd">
+                    <span class="am-panel-title">横幅图片链接地址</span>
+                </div>
+                <div class="am-panel-bd am-padding-sm">
+                    {{if !empty($data['home_banner_images_url_rules'])}}
+                        <table class="am-table am-table-bordered am-table-radius am-table-striped am-margin-bottom-0">
+                            <thead>
+                                <tr>
+                                    <th>平台</th>
+                                    <th>链接地址</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{if !empty($common_platform_type)}}
+                                    {{foreach $common_platform_type as $v}}
+                                        <tr>
+                                            <td>{{$v.name}}</td>
+                                            <td>{{if !empty($data['home_banner_images_url_rules']) and is_array($data['home_banner_images_url_rules']) and array_key_exists($v['value'], $data['home_banner_images_url_rules'])}}{{$data['home_banner_images_url_rules'][$v['value']]}}{{/if}}</td>
+                                        </tr>
+                                    {{/foreach}}
+                                {{/if}}
+                            </tbody>
+                        </table>
+                    {{else /}}
+                        <div class="am-padding-vertical-xl am-text-center">未配置链接地址</div>
+                    {{/if}}
+                </div>
+            </div>
+
+            <!-- 积分商城首页展示商品 -->
+            <div class="am-panel am-panel-default am-radius">
+                <div class="am-panel-hd">
+                    <span class="am-panel-title">积分商城首页展示商品</span>
+                </div>
+                <div class="am-panel-bd am-padding-sm">
+                    {{if !empty($data['goods_exchange_data'])}}
+                        <ul data-am-widget="gallery" class="am-gallery am-avg-sm-3 am-avg-md-5 am-avg-lg-6 am-gallery-bordered">
+                            {{foreach $data['goods_exchange_data'] as $v}}
+                                <li>
+                                    <div class="am-gallery-item">
+                                        <a href="{{$v.goods_url}}" target="_blank">
+                                            <img src="{{$v.images}}"  alt="{{$v.title}}"/>
+                                            <h3 class="am-gallery-title">{{$v.title}}</h3>
+                                        </a>
+                                        <p class="am-text-truncate am-text-danger">{{$currency_symbol}}<strong>{{$v.price}}</strong></p>
+                                        <p class="am-text-truncate am-padding-top-xs">需<strong class="am-text-secondary">{{$v.plugins_points_exchange_integral}}</strong>积分</p>
+                                    </div>
+                                </li>
+                            {{/foreach}}
+                        </ul>
+                    {{else /}}
+                        <div class="am-padding-vertical-xl am-text-center">未配置商品数据</div>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

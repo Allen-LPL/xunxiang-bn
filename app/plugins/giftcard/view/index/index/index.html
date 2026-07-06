@@ -1,0 +1,13 @@
+<!-- 继承公共的 form -->
+{{extend name="../../../module/view/form_table/user_form" /}}
+
+<!-- 表单顶部操作栏 -->
+{{block name="form_operate_top"}}
+    <button type="button" class="am-btn am-btn-primary am-radius am-btn-xs submit-modal" data-url="{{:PluginsHomeUrl('giftcard', 'index', 'exchangeinfo')}}" data-title="兑换卡密" data-width="350" data-height="320">
+        <i class="am-icon-gg"></i>
+        <span>卡密兑换</span>
+    </button>
+
+    <!-- 父级内容 -->
+    {__block__}
+{{/block}}

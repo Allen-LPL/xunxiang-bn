@@ -1,0 +1,98 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- right content start  -->
+<div class="content-right">
+    <div class="content">
+        <!-- nav -->
+        {{:ModuleInclude('public/plugins_admin_nav', [
+            'plugins'   => 'wallet',
+            'title'     => '钱包'.(empty($data['id']) ? MyLang('created_title') : MyLang('edit_title')),
+            'back_url'  => PluginsAdminUrl('wallet', 'wallet', 'index', $params),
+        ])}}
+
+        <div class="wallet-content">
+            {{if !empty($data)}}
+                <!-- form start -->
+                <form class="am-form form-validation am-form-full-screen am-form-popup-sticky" action="{{:PluginsAdminUrl('wallet', 'wallet', 'save')}}" method="POST" request-type="ajax-url" request-value="{{:PluginsAdminUrl('wallet', 'wallet', 'index')}}" enctype="multipart/form-data">
+                    <div class="am-alert am-alert-secondary">
+                        <div>
+                            <span>有效金额：</span>
+                            <span class="normal-money">{{$currency_symbol}}{{$data.normal_money}}</span>
+                        </div>
+                        <div>
+                            <span>冻结金额：</span>
+                            <span  class="frozen-money">{{$currency_symbol}}{{$data.frozen_money}}</span>
+                        </div>
+                        <div>
+                            <span>赠送金额：</span>
+                            <span class="give-money">{{$currency_symbol}}{{$data.give_money}}</span>
+                        </div>
+                    </div>
+                    <div class="am-form-group">
+                        <label>有效金额<span class="am-form-group-label-tips">包含赠送金额，最多两位小数</span></label>
+                        <input type="text" name="normal_money" placeholder="有效金额" pattern="{{$default_price_regex}}" data-validation-message="请输入有效的有效金额" class="am-radius" {{if !empty($data['normal_money']) and $data['normal_money'] gt 0}} value="{{$data.normal_money}}"{{/if}} />
+                    </div>
+
+                    <div class="am-form-group">
+                        <label>冻结金额<span class="am-form-group-label-tips">最多两位小数</span></label>
+                        <input type="text" name="frozen_money" placeholder="冻结金额" pattern="{{$default_price_regex}}" data-validation-message="请输入有效的冻结金额" class="am-radius" {{if !empty($data['frozen_money']) and $data['frozen_money'] gt 0}} value="{{$data.frozen_money}}"{{/if}} />
+                    </div>
+
+                    <div class="am-form-group">
+                        <label>赠送金额<span class="am-form-group-label-tips">最多两位小数</span></label>
+                        <input type="text" name="give_money" placeholder="赠送金额" pattern="{{$default_price_regex}}" data-validation-message="请输入有效的赠送金额" class="am-radius" {{if !empty($data['give_money']) and $data['give_money'] gt 0}} value="{{$data.give_money}}"{{/if}} />
+                    </div>
+
+                    <div class="am-form-group">
+                        <label>修改用户账户余额密码</label>
+                        <input type="password" name="wallet_edit_money_password" placeholder="修改用户账户余额密码" data-validation-message="请输入修改用户账户余额密码" class="am-radius" value="" />
+                        <div class="am-alert am-alert-warning" data-am-alert>
+                            <button type="button" class="am-close">&times;</button>
+                            <p>1. 仅修改[ 有效金额、冻结金额、赠送金额 ]的时候需要输入密码</p>
+                            <p>2. 该密码在基础配置中超级管理员配置</p>
+                            <p>3. 密码请联系超级管理员获取</p>
+                        </div>
+                    </div>
+
+                    <div class="am-form-group">
+                        <label class="am-block">状态<span class="am-form-group-label-tips-must">*</span></label>
+                        {{foreach $wallet_status_list as $v}}
+                            <label class="am-radio-inline">
+                                <input type="radio" name="status" value="{{$v.value}}" {{if isset($data['status']) and $data['status'] eq $v['value']}}checked{{else /}}{{if !isset($data['status']) and isset($v['checked']) and $v['checked'] eq true}}checked{{/if}}{{/if}} data-validation-message="请选择状态" data-am-ucheck required /> {{$v.name}}
+                            </label>
+                        {{/foreach}}
+                    </div>
+
+                    <div class="am-form-group">
+                      <label>操作原因</label>
+                      <textarea class="am-radius" name="msg" rows="3" maxlength="80" placeholder="最多80个字符" data-validation-message="操作原因格式最多 80 个字符"></textarea>
+                    </div>
+
+                    <div class="am-form-group">
+                        <label class="am-block">发送站内信</label>
+                        <input name="is_send_message" value="1" type="checkbox" data-off-text="{{:MyLang('no_title')}}" data-on-text="{{:MyLang('yes_title')}}" data-size="xs" data-on-color="success" data-off-color="default" data-handle-width="50" data-am-switch checked="true" />
+                    </div>
+
+                    <div class="am-form-popup-submit">
+                        <input type="hidden" name="id" value="{{if !empty($data['id'])}}{{$data.id}}{{/if}}" />
+                        <a href="{{:PluginsAdminUrl('wallet', 'wallet', 'index', $params)}}" class="am-btn am-btn-warning am-radius am-btn-xs am-margin-right-lg">
+                            <i class="am-icon-mail-reply"></i>
+                            <span>{{:MyLang('retreat_title')}}</span>
+                        </a>
+                        <button type="submit" class="am-btn am-btn-primary am-radius am-btn-xs btn-loading-example" data-am-loading="{spinner: 'circle-o-notch', loadingText:'{{:MyLang('save_title')}}'}">
+                            <i class="am-icon-save"></i>
+                            <span>{{:MyLang('save_title')}}</span>
+                        </button>
+                    </div>
+                </form>
+                <!-- form end -->
+            {{else /}}
+                <div class="table-no"><i class="am-icon-warning"></i> {{$msg}}</div>
+            {{/if}}
+        </div>
+    </div>
+</div>
+<!-- right content end  -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}

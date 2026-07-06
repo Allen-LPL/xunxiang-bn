@@ -1,0 +1,90 @@
+{{:ModuleInclude('public/header')}}
+
+<!-- header top nav -->
+{{:ModuleInclude('public/header_top_nav')}}
+
+<!-- search -->
+{{:ModuleInclude('public/nav_search')}}
+
+<!-- header nav -->
+{{:ModuleInclude('public/header_nav')}}
+
+<!-- goods category -->
+{{:ModuleInclude('public/goods_category')}}
+
+<!-- content start -->
+<div class="am-g am-container plugins-points">
+    {{if !empty($plugins_config)}}
+        <div class="am-margin-top-module top-container am-flex am-flex-warp">
+            <div class="am-u-md-4 am-u-lg-3 top-left am-padding-vertical-lg am-text-center am-radius" style="background-image: url('{{$default_images_data.home_user_bg_web_images}}');">
+                {{if empty($user)}}
+                    <div class="am-margin-top-xl am-padding-vertical-sm am-flex am-flex-col am-flex-items-center">
+                        <img src="{{if !empty($user['avatar'])}}{{$user.avatar}}{{else /}}{{:UserDefaultAvatar()}}{{/if}}" class="user-avatar am-img-thumbnail am-circle login-event am-cursor-pointer" width="88" height="88" />
+                        <p class="user-desc am-margin-top-module am-margin-bottom">您好，登录后可获知积分详情哟！</p>
+                        <a type="button" class="am-btn login-event">登录</a>
+                    </div>
+                {{else /}}
+                    <a href="{{:MyUrl('index/userintegral/index')}}" target="_blank" class="points-user-menu-submit am-radius">积分 {{if isset($user_integral['integral'])}}{{$user_integral.integral}}{{else /}}0{{/if}}</a>
+                    <div class="user-integral-container am-padding-vertical-sm am-margin-top-xl">
+                        <img src="{{$user.avatar}}" alt="{{$user.user_name_view}}" class="am-img-thumbnail am-circle" width="100" height="100" />
+                        <p class="user-name am-margin-top-module am-margin-bottom-lg am-text-lg am-font-weight">{{$user.user_name_view}}</p>
+                        <div class="user-desc am-margin-top-sm am-flex am-flex-items-center am-flex-justify-center am-gap-12">
+                            <a class="am-btn" href="{{:MyUrl('index/userintegral/index')}}" target="_blank"><i class="iconfont icon-points-terse"></i>我的积分</a>
+                            <div class="am-dropdown" data-am-dropdown="{trigger: 'hover'}">
+                                <a class="am-dropdown-toggle share-btn am-btn" href="javascript:;">
+                                    <i class="iconfont icon-share-square"></i>可分享到
+                                </a>
+                                <div class="am-dropdown-content share-list am-radius">
+                                    <div class="am-fl plugins-share-view" data-pic="{{$default_images_data.home_banner_images}}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {{/if}}
+            </div>
+            <div class="am-u-md-8 am-u-lg-9 top-right">
+                <a {{if empty($plugins_config['home_banner_images_url'])}}href="javascript:;"{{else /}}href="{{$plugins_config.home_banner_images_url}}" target="_blank"{{/if}}>
+                    <img class="am-radius" src="{{$default_images_data.home_banner_images}}" alt="积分商城" />
+                </a>
+            </div>
+        </div>
+
+        <!-- 提示信息 -->
+        {{if !empty($plugins_config['points_desc'])}}
+            <div class="am-alert am-alert-warning am-margin-bottom-0 am-margin-top-module points-notice am-nbfc" data-am-alert>
+                <button type="button" class="am-close">&times;</button>
+                <p>{{:implode(":", $plugins_config['points_desc'])}}</p>
+            </div>
+        {{/if}}
+
+        <!-- 商品兑换 -->
+        {{if !empty($plugins_config['goods_exchange_data'])}}
+            <div class="items-nav-title">
+                <p class="floor-title am-title-left-border">商品兑换</p>
+            </div>
+            <div class="goods-list {{if isset($plugins_config['is_pure_exchange_modal']) and $plugins_config['is_pure_exchange_modal'] eq 1}}pure-exchange-modal{{/if}}">
+                {{:ModuleInclude('module/goods/grid/base', [
+                    'goods_list'         => $plugins_config['goods_exchange_data'],
+                    'type'               => 'index',
+                    'value_type'         => '1',
+                    'is_currency_symbol' => 1,
+                    'button_text'        => '兑换',
+                    'is_disabled'        => 'false',
+                    'price_key'          => 'plugins_points_exchange_integral',
+                    'original_price_key' => (isset($plugins_config['is_pure_exchange_modal']) && $plugins_config['is_pure_exchange_modal'] == 1) ? '' : 'min_price',
+                ])}}
+            </div>
+        {{/if}}
+
+        <!-- 底部代码 -->
+        {{if !empty($plugins_config['footer_code'])}}
+            <div class="am-container fooer-code-container">{{$plugins_config.footer_code|raw}}</div>
+        {{/if}}
+    {{else /}}
+        {{:ModuleInclude('public/not_data')}}
+    {{/if}}
+</div>
+<!-- content end -->
+
+<!-- footer start -->
+{{:ModuleInclude('public/footer')}}
