@@ -43,10 +43,15 @@ class CardSecretService
             $currency_symbol = ResourcesService::CurrencyDataSymbol();
             // 优惠券
             $coupon = array_column(BaseService::CouponList(), null, 'id');
-            // 商品
-            $goods_ids = call_user_func_array('array_merge', array_filter(array_map(function($item) {
-                return isset($item['data_type']) && $item['data_type'] == 3 ? explode(',', $item['secret_value']) : [];
-            }, $data)));
+            // 商品（secret_value 支持 gid 或 gid:数量 格式）
+            $goods_ids = [];
+            foreach($data as $item)
+            {
+                if(isset($item['data_type']) && $item['data_type'] == 3 && !empty($item['secret_value']))
+                {
+                    $goods_ids = array_merge($goods_ids, array_keys(self::SecretValueGoodsParse($item['secret_value'])));
+                }
+            }
             $goods = Db::name('Goods')->where(['id'=>array_unique($goods_ids)])->column('id,title', 'id');
             if(!empty($goods))
             {
@@ -99,13 +104,15 @@ class CardSecretService
 
                         // 商品
                         case 3 :
-                            $temp = explode(',', $v['secret_value']);
+                            $goods_num_map = self::SecretValueGoodsParse($v['secret_value']);
                             $secret_value_data = [];
-                            foreach($temp as $gid)
+                            foreach($goods_num_map as $gid=>$num)
                             {
                                 if(!empty($goods) && array_key_exists($gid, $goods))
                                 {
-                                    $secret_value_data[] = $goods[$gid];
+                                    $temp_goods = $goods[$gid];
+                                    $temp_goods['exchange_num'] = $num;
+                                    $secret_value_data[] = $temp_goods;
                                 }
                             }
                             $v['secret_value_data'] = $secret_value_data;
@@ -241,13 +248,22 @@ class CardSecretService
             return DataReturn('未开启卡密兑换、请联系管理员！', -1);
         }
 
+        // 防刷限制：同一用户短时间内失败次数过多则临时拒绝（防止暴力遍历卡密）
+        $fail_cache_key = 'plugins_giftcard_exchange_fail_'.$params['user']['id'];
+        $fail_count = intval(MyCache($fail_cache_key));
+        if($fail_count >= 5)
+        {
+            return DataReturn('尝试次数过多、请1分钟后再试！', -1);
+        }
+
         // 卡密信息
-        $data = Db::name('PluginsGiftcardCardSecret')->where(['secret_key'=>$params['secret_key']])->find();
+        $data = Db::name('PluginsGiftcardCardSecret')->where(['secret_key'=>trim($params['secret_key'])])->find();
         if(empty($data))
         {
+            MyCache($fail_cache_key, $fail_count+1, 60);
             return DataReturn('没有相关礼品卡密数据！', -1);
         }
-        // 是否已兑换
+        // 是否已兑换（预检提示、最终以下方原子更新结果为准）
         if($data['is_exchange'] == 1)
         {
             // 新增日志
@@ -256,21 +272,29 @@ class CardSecretService
             {
                 return $ret;
             }
+            MyCache($fail_cache_key, $fail_count+1, 60);
             return DataReturn('该礼品卡密已被使用！', -1);
+        }
+        // 礼品卡主体停用则不可兑换（作废控制：后台停用卡即整批作废）
+        $card = Db::name('PluginsGiftcardCard')->where(['id'=>$data['card_id']])->find();
+        if(empty($card) || $card['is_enable'] != 1)
+        {
+            return DataReturn('该礼品卡已停用、无法兑换！', -1);
         }
 
         // 处理数据
         Db::startTrans();
         try {
-            // 更新礼品卡数据
-            if(!Db::name('PluginsGiftcardCardSecret')->where(['id'=>$data['id']])->update([
+            // 原子抢占核销：带 is_exchange=0 条件的更新、并发时仅一个请求能成功（防止同一卡密重复兑换）
+            $claim = Db::name('PluginsGiftcardCardSecret')->where(['id'=>$data['id'], 'is_exchange'=>0])->update([
                 'user_id'        => $params['user']['id'],
                 'is_exchange'    => 1,
                 'exchange_time'  => time(),
                 'upd_time'       => time(),
-            ]))
+            ]);
+            if($claim < 1)
             {
-                throw new \Exception('礼品卡密数据更新失败、请稍后再试！');
+                throw new \Exception('该礼品卡密已被使用！');
             }
             // 更新礼品卡主数据
             if(!Db::name('PluginsGiftcardCard')->where(['id'=>$data['card_id']])->inc('card_exchange_count')->update())
@@ -326,8 +350,41 @@ class CardSecretService
             return DataReturn('兑换成功', 0, ['data_type'=>intval($data['data_type'])]);
         } catch(\Exception $e) {
             Db::rollback();
+            MyCache($fail_cache_key, $fail_count+1, 60);
             return DataReturn($e->getMessage(), -1);
         }
+    }
+
+    /**
+     * 商品卡密数据解析
+     * @author  Devil
+     * @date    2026-07-06
+     * @desc    secret_value 支持「gid」或「gid:数量」格式、逗号分隔（不带数量默认1件），如：12:2,35 表示商品12可兑2件、商品35可兑1件
+     * @param   [string]          $secret_value [卡密数据]
+     * @return  [array]           [商品id => 可兑数量]
+     */
+    public static function SecretValueGoodsParse($secret_value)
+    {
+        $result = [];
+        if(!empty($secret_value))
+        {
+            foreach(explode(',', str_replace('，', ',', $secret_value)) as $item)
+            {
+                $item = trim($item);
+                if($item === '')
+                {
+                    continue;
+                }
+                $temp = explode(':', $item);
+                $gid = intval($temp[0]);
+                $num = isset($temp[1]) ? max(1, intval($temp[1])) : 1;
+                if($gid > 0)
+                {
+                    $result[$gid] = (isset($result[$gid]) ? $result[$gid] : 0) + $num;
+                }
+            }
+        }
+        return $result;
     }
 
     /**
@@ -382,15 +439,41 @@ class CardSecretService
         {
             foreach($data as &$v)
             {
-                // 卡密数据
-                $v['secret_value'] = empty($v['secret_value']) ? [] : explode(',', $v['secret_value']);
+                // 卡密商品与可兑数量（gid => 总件数、支持 gid:数量 格式）
+                $goods_num_map = self::SecretValueGoodsParse($v['secret_value']);
+                $v['secret_value'] = array_keys($goods_num_map);
 
                 // 使用数据
                 $v['use_data'] = empty($v['use_data']) ? '' : json_decode($v['use_data'], true);
 
-                // 未使用的商品id
-                $use_goods_ids = (empty($v['use_data']) || !is_array($v['use_data'])) ? [] : array_column($v['use_data'], 'goods_id');
-                $v['not_use_goods_ids'] = array_diff($v['secret_value'], $use_goods_ids);
+                // 已使用件数（gid => 件数）
+                $use_num_map = [];
+                if(!empty($v['use_data']) && is_array($v['use_data']))
+                {
+                    foreach($v['use_data'] as $uv)
+                    {
+                        if(!empty($uv['goods_id']))
+                        {
+                            $gid = intval($uv['goods_id']);
+                            $use_num_map[$gid] = (isset($use_num_map[$gid]) ? $use_num_map[$gid] : 0) + (isset($uv['stock']) ? max(1, intval($uv['stock'])) : 1);
+                        }
+                    }
+                }
+
+                // 剩余可兑件数（gid => 件数）
+                $not_use_goods_num = [];
+                foreach($goods_num_map as $gid=>$num)
+                {
+                    $left = $num - (isset($use_num_map[$gid]) ? $use_num_map[$gid] : 0);
+                    if($left > 0)
+                    {
+                        $not_use_goods_num[$gid] = $left;
+                    }
+                }
+                $v['goods_num_map'] = $goods_num_map;
+                $v['not_use_goods_num'] = $not_use_goods_num;
+                // 兼容原字段：仍有剩余件数的商品id
+                $v['not_use_goods_ids'] = array_keys($not_use_goods_num);
             }
         }
         return $data;
@@ -429,20 +512,23 @@ class CardSecretService
         {
             return [];
         }
-        // 已兑换实物卡密(data_type=3)可领取的商品id
+        // 已兑换实物卡密(data_type=3)可领取的商品与剩余件数
         $data = self::CardSecretValueGoodsData($user_id);
-        $goods_ids = [];
+        $goods_left_num = [];
         if(!empty($data) && is_array($data))
         {
             foreach($data as $v)
             {
-                if(!empty($v['not_use_goods_ids']) && is_array($v['not_use_goods_ids']))
+                if(!empty($v['not_use_goods_num']) && is_array($v['not_use_goods_num']))
                 {
-                    $goods_ids = array_merge($goods_ids, $v['not_use_goods_ids']);
+                    foreach($v['not_use_goods_num'] as $gid=>$num)
+                    {
+                        $goods_left_num[$gid] = (isset($goods_left_num[$gid]) ? $goods_left_num[$gid] : 0) + $num;
+                    }
                 }
             }
         }
-        $goods_ids = array_values(array_unique(array_filter($goods_ids)));
+        $goods_ids = array_keys(array_filter($goods_left_num));
         if(empty($goods_ids))
         {
             return [];
@@ -457,7 +543,16 @@ class CardSecretService
             'm'         => 0,
             'n'         => count($goods_ids),
         ]);
-        return empty($goods['data']) ? [] : $goods['data'];
+        if(empty($goods['data']))
+        {
+            return [];
+        }
+        // 附加剩余可兑件数
+        foreach($goods['data'] as &$gv)
+        {
+            $gv['exchange_num'] = isset($goods_left_num[$gv['id']]) ? $goods_left_num[$gv['id']] : 1;
+        }
+        return $goods['data'];
     }
 
     /**
@@ -561,23 +656,46 @@ class CardSecretService
                             if(!empty($ev['card_secret_id']) && !empty($ev['goods_id']))
                             {
                                 $card_secret = Db::name('PluginsGiftcardCardSecret')->where(['id'=>$ev['card_secret_id']])->field('secret_value,use_data')->find();
-                                $use_data = empty($card_secret['use_data']) ? [] : array_column(json_decode($card_secret['use_data'], true), null, 'order_id');
+                                // 同一订单同一卡密可能兑换多个商品、以 订单id+商品id 作为使用记录key
+                                $use_data_list = empty($card_secret['use_data']) ? [] : json_decode($card_secret['use_data'], true);
+                                $use_data = [];
+                                foreach($use_data_list as $udv)
+                                {
+                                    $use_data[$udv['order_id'].'_'.(isset($udv['goods_id']) ? $udv['goods_id'] : 0)] = $udv;
+                                }
+                                $use_key = $order_id.'_'.$ev['goods_id'];
                                 if($type == 1)
                                 {
-                                    $use_data[$order_id] = [
+                                    $use_data[$use_key] = [
                                         'order_id'     => $order_id,
                                         'order_no'     => $order_no,
                                         'goods_id'     => $ev['goods_id'],
                                         'goods_title'  => $ev['goods_title'],
                                         'goods_price'  => $ev['goods_price'],
                                         'goods_spec'   => $ev['goods_spec'],
+                                        'stock'        => isset($ev['stock']) ? max(1, intval($ev['stock'])) : 1,
                                         'use_time'     => time(),
                                     ];
                                 } else {
-                                    unset($use_data[$order_id]);
+                                    // 释放该订单占用的全部使用记录
+                                    foreach($use_data as $udk=>$udv)
+                                    {
+                                        if(intval($udv['order_id']) == intval($order_id))
+                                        {
+                                            unset($use_data[$udk]);
+                                        }
+                                    }
+                                }
+                                // 按件数计算是否已用完（部分使用时卡密仍可继续兑换剩余件数）
+                                $goods_num_map = self::SecretValueGoodsParse($card_secret['secret_value']);
+                                $total_num = array_sum($goods_num_map);
+                                $used_num = 0;
+                                foreach($use_data as $udv)
+                                {
+                                    $used_num += isset($udv['stock']) ? max(1, intval($udv['stock'])) : 1;
                                 }
                                 if(Db::name('PluginsGiftcardCardSecret')->where(['id'=>$ev['card_secret_id']])->update([
-                                    'use_status'  => empty($use_data) ? 0 : 1,
+                                    'use_status'  => ($total_num > 0 && $used_num >= $total_num) ? 1 : 0,
                                     'use_data'    => empty($use_data) ? '' : json_encode(array_values($use_data), JSON_UNESCAPED_UNICODE),
                                     'upd_time'    => time(),
                                 ]) === false)

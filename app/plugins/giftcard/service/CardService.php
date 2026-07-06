@@ -177,6 +177,34 @@ class CardService
             {
                 return DataReturn($ret, -1);
             }
+
+            // 积分类型：必须为正整数
+            if($params['data_type'] == 2 && intval($params['points']) <= 0)
+            {
+                return DataReturn('可兑换积分必须为大于0的整数', -1);
+            }
+
+            // 商品类型：格式校验（gid 或 gid:数量、逗号分隔）并校验商品存在
+            if($params['data_type'] == 3)
+            {
+                $params['goods'] = str_replace(['，', ' '], [',', ''], trim($params['goods']));
+                if(!preg_match('/^\d+(:\d+)?(,\d+(:\d+)?)*$/', $params['goods']))
+                {
+                    return DataReturn('可兑换商品格式有误（示例：12:2,35 表示商品12可兑2件、商品35可兑1件）', -1);
+                }
+                $goods_num_map = CardSecretService::SecretValueGoodsParse($params['goods']);
+                if(empty($goods_num_map))
+                {
+                    return DataReturn('可兑换商品数据为空', -1);
+                }
+                $goods_ids = array_keys($goods_num_map);
+                $exists_ids = Db::name('Goods')->where([['id', 'in', $goods_ids], ['is_delete_time', '=', 0]])->column('id');
+                $not_exists = array_diff($goods_ids, $exists_ids);
+                if(!empty($not_exists))
+                {
+                    return DataReturn('商品id不存在：'.implode(',', $not_exists), -1);
+                }
+            }
         }
 
         // 数据
@@ -390,8 +418,9 @@ class CardService
             // 循环生成
             for($i=0; $i<$params['number']; $i++)
             {
-                // 添加数据
+                // 添加数据（先写入批次内唯一的占位卡密、避免唯一索引空值冲突，随后更新为正式卡密）
                 unset($data['id']);
+                $data['secret_key'] = 'TMP-'.$batch_id.'-'.($i+1);
                 $data['id'] = Db::name('PluginsGiftcardCardSecret')->insertGetId($data);
                 if(empty($data['id']))
                 {

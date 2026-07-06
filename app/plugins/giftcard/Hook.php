@@ -241,8 +241,6 @@ class Hook
                 if(!empty($user_card))
                 {
                     $currency_symbol = ResourcesService::CurrencyDataSymbol();
-                    $use_goods_ids = [];
-                    $use_card_secret_ids = [];
                     foreach($params['data'] as $k=>$v)
                     {
                         if(!empty($v['goods_items']) && is_array($v['goods_items']))
@@ -250,16 +248,20 @@ class Hook
                             $use_card = [];
                             foreach($v['goods_items'] as $vs)
                             {
-                                foreach($user_card as $cv)
+                                // 该规格行需要抵扣的件数（按购买件数、跨卡累计抵扣）
+                                $need = max(1, intval($vs['stock']));
+                                foreach($user_card as $ci=>$cv)
                                 {
-                                    if(!in_array($cv['id'], $use_card_secret_ids) && (empty($use_goods_ids[$vs['goods_id']]) || $use_goods_ids[$vs['goods_id']] < $vs['stock']) && !empty($cv['not_use_goods_ids']) && is_array($cv['not_use_goods_ids']) && in_array($vs['goods_id'], $cv['not_use_goods_ids']))
+                                    if($need <= 0)
                                     {
-                                        if(!array_key_exists($vs['goods_id'], $use_goods_ids))
-                                        {
-                                            $use_goods_ids[$vs['goods_id']] = 0;
-                                        }
-                                        $use_goods_ids[$vs['goods_id']] += 1;
-                                        $use_card_secret_ids[] = $cv['id'];
+                                        break;
+                                    }
+                                    if(!empty($cv['not_use_goods_num']) && !empty($cv['not_use_goods_num'][$vs['goods_id']]))
+                                    {
+                                        $take = min($need, intval($cv['not_use_goods_num'][$vs['goods_id']]));
+                                        // 扣减该卡剩余额度（同单多行/多店铺分组共享额度）
+                                        $user_card[$ci]['not_use_goods_num'][$vs['goods_id']] -= $take;
+                                        $need -= $take;
                                         $use_card[] = [
                                             'card_secret_id'  => $cv['id'],
                                             'card_id'         => $cv['card_id'],
@@ -267,14 +269,19 @@ class Hook
                                             'goods_title'     => $vs['title'],
                                             'goods_price'     => $vs['price'],
                                             'goods_spec'      => $vs['spec'],
-                                            'stock'           => 1,
+                                            'stock'           => $take,
                                         ];
                                     }
                                 }
                             }
                             if(!empty($use_card))
                             {
-                                $total_price = PriceNumberFormat(array_sum(array_column($use_card, 'goods_price')));
+                                $total_price = 0;
+                                foreach($use_card as $ucv)
+                                {
+                                    $total_price += $ucv['goods_price'] * $ucv['stock'];
+                                }
+                                $total_price = PriceNumberFormat($total_price);
                                 $params['data'][$k]['order_base']['extension_data'][] = [
                                     'name'         => '礼品卡商品兑换',
                                     'price'        => $total_price,

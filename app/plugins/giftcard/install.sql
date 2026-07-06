@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `{PREFIX}plugins_giftcard_card_secret` (
   KEY `card_id` (`card_id`),
   KEY `user_id` (`user_id`),
   KEY `data_type` (`data_type`),
-  KEY `secret_key` (`secret_key`),
+  UNIQUE KEY `secret_key` (`secret_key`),
   KEY `secret_value` (`secret_value`),
   KEY `is_exchange` (`is_exchange`),
   KEY `exchange_time` (`exchange_time`)
