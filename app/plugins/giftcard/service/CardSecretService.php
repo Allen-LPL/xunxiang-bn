@@ -480,6 +480,93 @@ class CardSecretService
     }
 
     /**
+     * 礼品卡兑换支付校验（服务端核验）
+     * 仅当请求声明 is_gift=1、且当前用户确实持有未使用的礼品卡商品兑换权益、并可完全覆盖本单参与积分兑换的商品件数时才放行。
+     * 用于防止仅凭客户端 is_gift 标识绕过积分余额校验、把积分应付归0从而免费下单（fail closed：任一条件不满足均返回0）。
+     * @author  Devil
+     * @param   [array]        $goods    [仓库组商品数据(含 goods_items)]
+     * @param   [int]          $user_id  [用户id, 为空则自动解析登录用户]
+     * @return  [int]                    [1 允许礼品卡兑换支付, 0 否]
+     */
+    public static function GiftPayVerify($goods, $user_id = 0)
+    {
+        // 客户端未声明礼品卡兑换支付
+        if(intval(MyInput('is_gift')) != 1)
+        {
+            return 0;
+        }
+
+        // 解析用户（未指定则读取请求参数/登录用户）
+        $user_id = intval($user_id);
+        if($user_id <= 0)
+        {
+            $user_id = intval(MyInput('user_id'));
+            if($user_id <= 0)
+            {
+                $user = \app\service\UserService::LoginUserInfo();
+                $user_id = empty($user['id']) ? 0 : intval($user['id']);
+            }
+        }
+        if($user_id <= 0)
+        {
+            return 0;
+        }
+
+        // 统计本单参与积分兑换的商品所需件数（仅积分兑换商品，按 goods_id 累计购买件数）
+        $need_map = [];
+        if(!empty($goods) && is_array($goods))
+        {
+            foreach($goods as $v)
+            {
+                if(!empty($v['goods_items']) && is_array($v['goods_items']))
+                {
+                    foreach($v['goods_items'] as $vs)
+                    {
+                        if(!empty($vs['plugins_points_data']) && !empty($vs['goods_id']) && !empty($vs['stock']) && $vs['stock'] > 0)
+                        {
+                            $gid = intval($vs['goods_id']);
+                            $need_map[$gid] = (isset($need_map[$gid]) ? $need_map[$gid] : 0) + intval($vs['stock']);
+                        }
+                    }
+                }
+            }
+        }
+        // 本单不含积分兑换商品、无需放行
+        if(empty($need_map))
+        {
+            return 0;
+        }
+
+        // 汇总用户持有的未使用礼品卡商品兑换权益（gid => 剩余可兑件数、跨卡累计）
+        $user_card = self::CardSecretValueGoodsData($user_id);
+        $remain = [];
+        if(!empty($user_card) && is_array($user_card))
+        {
+            foreach($user_card as $cv)
+            {
+                if(!empty($cv['not_use_goods_num']) && is_array($cv['not_use_goods_num']))
+                {
+                    foreach($cv['not_use_goods_num'] as $gid=>$num)
+                    {
+                        $gid = intval($gid);
+                        $remain[$gid] = (isset($remain[$gid]) ? $remain[$gid] : 0) + intval($num);
+                    }
+                }
+            }
+        }
+
+        // 每个参与兑换的商品都必须被礼品卡兑换权益完全覆盖，否则不予放行（fail closed）
+        foreach($need_map as $gid=>$need)
+        {
+            if(empty($remain[$gid]) || $remain[$gid] < $need)
+            {
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    /**
      * 用户已兑换礼品卡密总数
      * @author  Devil
      * @date    2026-06-29

@@ -328,6 +328,12 @@ class Hook
     public function PureExchangeBuyCheck($params)
     {
         $ret = DataReturn('success', 0);
+        // 礼品卡兑换支付：跳过积分余额校验，改由礼品卡兑换权益核销、积分应付归0
+        // 服务端核验(GiftPayVerify)：必须 is_gift=1 且用户确实持有可覆盖本单兑换商品的礼品卡权益，否则不放行(fail closed)
+        if(!empty($params['data']) && !empty($params['data']['goods']) && PointsService::GiftPayVerify($params['data']['goods']) == 1)
+        {
+            return $ret;
+        }
         if(!empty($params['data']) && !empty($params['data']['goods']))
         {
             $goods_integral = 0;

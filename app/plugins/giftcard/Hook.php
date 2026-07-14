@@ -241,6 +241,8 @@ class Hook
                 if(!empty($user_card))
                 {
                     $currency_symbol = ResourcesService::CurrencyDataSymbol();
+                    // 礼品卡兑换支付：仅当 is_gift=1 且用户持有的兑换权益可完全覆盖本单兑换商品时成立(与积分插件核验一致，避免重复抵扣金额)
+                    $is_gift_pay = CardSecretService::GiftPayVerify($params['data'], $user['id']) == 1;
                     foreach($params['data'] as $k=>$v)
                     {
                         if(!empty($v['goods_items']) && is_array($v['goods_items']))
@@ -282,12 +284,13 @@ class Hook
                                     $total_price += $ucv['goods_price'] * $ucv['stock'];
                                 }
                                 $total_price = PriceNumberFormat($total_price);
+                                // 礼品卡兑换支付时金额侧由积分插件归零，此处仅保留权益核销数据(ext)，price置0避免重复抵扣金额
                                 $params['data'][$k]['order_base']['extension_data'][] = [
                                     'name'         => '礼品卡商品兑换',
-                                    'price'        => $total_price,
+                                    'price'        => $is_gift_pay ? 0 : $total_price,
                                     'type'         => 0,
                                     'business'     => 'plugins-giftcard-goods-exchange',
-                                    'tips'         => '-'.$currency_symbol.$total_price,
+                                    'tips'         => $is_gift_pay ? '' : '-'.$currency_symbol.$total_price,
                                     'ext'          => $use_card,
                                 ];
                             }

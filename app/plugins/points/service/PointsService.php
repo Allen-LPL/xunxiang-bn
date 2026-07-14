@@ -27,6 +27,24 @@ use app\plugins\points\service\BaseService;
 class PointsService
 {
     /**
+     * 礼品卡兑换支付校验（服务端核验、防止仅凭客户端 is_gift 标识绕过积分校验/免费下单）
+     * 校验逻辑由礼品卡插件持有兑换权益、此处仅做存在性守卫；礼品卡插件未安装时一律不放行（fail closed）。
+     * @author  Devil
+     * @param   [array]          $goods    [仓库组商品数据]
+     * @param   [int]            $user_id  [用户id, 为空则自动解析]
+     * @return  [int]                      [1 允许礼品卡兑换支付, 0 否]
+     */
+    public static function GiftPayVerify($goods, $user_id = 0)
+    {
+        // 礼品卡插件未安装则不予放行
+        if(!class_exists('\\app\\plugins\\giftcard\\service\\CardSecretService'))
+        {
+            return 0;
+        }
+        return (\app\plugins\giftcard\service\CardSecretService::GiftPayVerify($goods, $user_id) == 1) ? 1 : 0;
+    }
+
+    /**
      * 下单页面用户积分信息
      * @author  Devil
      * @blog    http://gong.gg/
@@ -98,6 +116,9 @@ class PointsService
         $is_support_goods_exchange = 0;
         $is_integral_exchange = isset($base['is_integral_exchange']) && $base['is_integral_exchange'] == 1 ? 1 : 0;
         $is_pure_exchange_modal = isset($base['is_pure_exchange_modal']) && $base['is_pure_exchange_modal'] == 1 ? 1 : 0;
+        // 礼品卡兑换支付标识：为1时跳过积分余额限制、强制应用兑换(金额归零)、且积分应付归0(由礼品卡兑换权益核销)
+        // 服务端核验：必须客户端声明 is_gift=1 且用户确实持有可完全覆盖本单兑换商品的礼品卡兑换权益(fail closed)
+        $is_gift = self::GiftPayVerify($goods, $user_id);
         // 商品处理
         $goods_count = 0;
         foreach($goods as $v)
@@ -157,7 +178,7 @@ class PointsService
             if($is_integral_exchange && $goods_exchange_count > 0)
             {
                 $is_support_goods_exchange = 1;
-                if($exchange_integral_total > 0 && $goods_count > 0 && $user_integral >= $exchange_integral_total)
+                if($exchange_integral_total > 0 && $goods_count > 0 && ($is_gift == 1 || $user_integral >= $exchange_integral_total))
                 {
                     $discount_type = 1;
                     $use_integral = $exchange_integral_total;
@@ -262,6 +283,12 @@ class PointsService
                 }
             }
 
+            // 礼品卡兑换支付：强制选中兑换，使兑换金额归零生效(积分应付将在 BuyUserPointsHandle 归0)
+            if($is_gift == 1 && $discount_type == 1)
+            {
+                $is_checked = 1;
+            }
+
             // 提示信息处理
             if($discount_price > 0)
             {
@@ -297,6 +324,7 @@ class PointsService
             'is_checked'                  => $is_checked,
             'is_integral_exchange'        => $is_integral_exchange,
             'is_pure_exchange_modal'      => $is_pure_exchange_modal,
+            'is_gift'                     => $is_gift,
             'use_msg_tips'                => $use_msg_tips,
             'usable_msg_tips'             => $usable_msg_tips,
             'not_msg_tips'                => $not_msg_tips,
@@ -335,13 +363,15 @@ class PointsService
                     $price = ($data['is_pure_exchange_modal'] == 1) ? $integral_price+$not_exchange_price : $not_exchange_price;
                     if($integral > 0)
                     {
+                        // 礼品卡兑换支付：金额照常归零，但积分应付归0(ext=0则订单成功后不扣积分)，改由礼品卡兑换权益核销
+                        $is_gift_pay = !empty($data['is_gift']);
                         $goods[$k]['order_base']['extension_data'][] = [
-                            'name'         => '积分兑换('.$integral.'积分'.($integral_price > 0 ? ' +'.$currency_symbol.$integral_price : '').')',
+                            'name'         => $is_gift_pay ? '礼品卡兑换('.$integral.'积分由礼品卡权益抵扣)' : '积分兑换('.$integral.'积分'.($integral_price > 0 ? ' +'.$currency_symbol.$integral_price : '').')',
                             'price'        => $v['order_base']['total_price']-$price,
                             'type'         => 0,
                             'business'     => 'plugins-points-exchange',
                             'tips'         => '',
-                            'ext'          => $integral,
+                            'ext'          => $is_gift_pay ? 0 : $integral,
                         ];
                     }
                 } else {
